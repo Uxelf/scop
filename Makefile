@@ -8,19 +8,24 @@ CXXFLAGS = -Iincludes -std=c++20 -MMD -MP
 LDFLAGS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi
 
 # Directories
-INCLUDES = includes
-SRCS_DIR = srcs
+SRCS_DIR = src
 BUILD_DIR = build
+GLAD_DIR = others/GLAD
+
+INCLUDE_DIRS = -I./include -I./$(GLAD_DIR)/include
 
 # Create directories if they don't exist
 $(shell mkdir -p $(BUILD_DIR))
 
 # Source files
 SRCS = \
-    $(SRCS_DIR)/main.cpp 
+	$(SRCS_DIR)/main.cpp \
+	others/GLAD/src/glad.c 
+
 
 # Object files
-OBJS = $(patsubst $(SRCS_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
+OBJS = $(patsubst $(SRCS_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(patsubst $(GLAD_DIR)/src/%.c,$(BUILD_DIR)/%.o,$(SRCS)))
+
 
 # Dependency files
 DEPS = $(patsubst $(BUILD_DIR)/%.o,$(BUILD_DIR)/%.d,$(OBJS))
@@ -36,8 +41,13 @@ $(TARGET): $(OBJS)
 	@printf "\e[95m\e[0;94mCompiled \e[1m\e[95m\e[92m$(TARGET)\e[0m\n"
 
 $(BUILD_DIR)/%.o: $(SRCS_DIR)/%.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIRS) -c $< -o $@
 	@mkdir -p $(dir $@)
+
+$(BUILD_DIR)/%.o: $(GLAD_DIR)/src/%.c
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIRS) -c $< -o $@
+	@mkdir -p $(dir $@)
+
 
 # Include the generated dependency files
 -include $(DEPS)

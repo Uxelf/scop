@@ -1,5 +1,5 @@
 
-#include "../includes/scop.hpp"
+#include "../include/scop.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -28,6 +28,17 @@ int main(void)
 
     glClearColor(0.2, 0.2, 0.2, 1.0f);
 
+
+
+    float vertex[] = {
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f
+    };  
+
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+
     while(!glfwWindowShouldClose(window)){
         
         processInput(window);
@@ -40,14 +51,6 @@ int main(void)
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-
-
-
-
-
-
-
 
 
 
