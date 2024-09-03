@@ -20,6 +20,7 @@ $(shell mkdir -p $(BUILD_DIR))
 # Source files
 SRCS = \
 	$(SRCS_DIR)/main.cpp \
+	$(SRCS_DIR)/Shader.cpp \
 	others/GLAD/src/glad.c 
 
 
