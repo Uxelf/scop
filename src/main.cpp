@@ -3,6 +3,7 @@
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
+std::string getShader(std::string path);
 
 int main(void)
 {
@@ -37,12 +38,8 @@ int main(void)
 
     //* Vertex shader
 
-    const char *vertexShaderSource = "#version 330 core\n"
-        "layout (location = 0) in vec3 aPos;\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-        "}\0";
+    const std::string vertexShaderSourceString = getShader("shaders/default/default_vert.shader");
+    const char *vertexShaderSource = vertexShaderSourceString.c_str();
 
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -63,12 +60,8 @@ int main(void)
 
     //* Fragment shader
 
-    const char *fragmentShaderSource = "#version 330 core\n"
-        "out vec4 FragColor;\n"
-        "void main()\n"
-        "{\n"
-        "FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-        "}\0";
+    const std::string fragmentShaderSourceString = getShader("shaders/default/default_frag.shader");
+    const char *fragmentShaderSource = fragmentShaderSourceString.c_str();
 
     unsigned int fragmentShader;
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -178,4 +171,24 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 void processInput(GLFWwindow* window){
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+}
+
+std::string getShader(std::string path){
+
+    std::ifstream file(path);
+
+    if (!file.is_open()){
+        std::cerr << "Failed to open file: " << path << std::endl;
+        exit(1);
+    }
+
+    std::string file_content;
+    std::string line;
+    while (std::getline(file, line)){
+        if (!file_content.empty())
+            file_content += '\n';
+        file_content += line;
+    }
+    file.close();
+    return file_content;
 }
