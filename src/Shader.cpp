@@ -1,40 +1,44 @@
 #include "Shader.hpp"
 
+std::string getFileContent(const char* path);
+
+unsigned int createProgramID(const char* vShaderCode, const char* fShaderCode);
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath){
 
-    std::string vertexCode;
-    std::string fragmentCode;
-    std::ifstream vShaderFile;
-    std::ifstream fShaderFile;
+    std::string vertexCode = getFileContent(vertexPath);
+    std::string fragmentCode = getFileContent(fragmentPath);
+    
+    const char* vShaderCode = vertexCode.c_str();
+    const char* fShaderCode = fragmentCode.c_str();
 
-    vShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
-    fShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
+    ID = createProgramID(vShaderCode, fShaderCode);
+}
+
+std::string getFileContent(const char* path){
+    std::ifstream file;
+    std::string code;
+
+    file.exceptions (std::ifstream::failbit | std::ifstream::badbit);
     try 
     {
-        // open files
-        vShaderFile.open(vertexPath);
-        fShaderFile.open(fragmentPath);
-        std::stringstream vShaderStream, fShaderStream;
+        file.open(path);
+        std::stringstream shaderStream;
         // read file's buffer contents into streams
-        vShaderStream << vShaderFile.rdbuf();
-        fShaderStream << fShaderFile.rdbuf();		
+        shaderStream << file.rdbuf();		
         // close file handlers
-        vShaderFile.close();
-        fShaderFile.close();
+        file.close();
         // convert stream into string
-        vertexCode   = vShaderStream.str();
-        fragmentCode = fShaderStream.str();		
+        code = shaderStream.str();
     }
     catch(std::ifstream::failure e)
     {
         std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
     }
-    const char* vShaderCode = vertexCode.c_str();
-    const char* fShaderCode = fragmentCode.c_str();
+    return code;
+}
 
-
-
+unsigned int createProgramID(const char* vShaderCode, const char* fShaderCode){
     unsigned int vertex, fragment;
     int success;
     char infoLog[512];
@@ -63,7 +67,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath){
         std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
     };
 
-    ID = glCreateProgram();
+    unsigned int ID = glCreateProgram();
     glAttachShader(ID, vertex);
     glAttachShader(ID, fragment);
     glLinkProgram(ID);
@@ -79,6 +83,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath){
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 
+    return ID;
 }
 
 void Shader::use(){
