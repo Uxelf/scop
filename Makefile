@@ -10,9 +10,10 @@ LDFLAGS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi
 # Directories
 SRCS_DIR = src
 BUILD_DIR = build
-GLAD_DIR = others/GLAD
+OTHERS_DIR = others
+GLAD_DIR = $(OTHERS_DIR)/GLAD
 
-INCLUDE_DIRS = -I./include -I./$(GLAD_DIR)/include
+INCLUDE_DIRS = -I./include -I./$(GLAD_DIR)/include -I./$(OTHERS_DIR)/stb
 
 # Create directories if they don't exist
 $(shell mkdir -p $(BUILD_DIR))

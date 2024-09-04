@@ -4,7 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/others/GLAD/include/*/*"
+                "${workspaceFolder}/others/GLAD/include/*/*",
+                "${workspaceFolder}/others/stb/*"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
