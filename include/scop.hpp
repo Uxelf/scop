@@ -6,5 +6,5 @@
 #include <math.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-
-#include "../src/Shader.hpp"
+#include <Shader.hpp>
+#include <Matrix4x4.hpp>

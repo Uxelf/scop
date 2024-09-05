@@ -1,4 +1,4 @@
-#include "Shader.hpp"
+#include <Shader.hpp>
 
 std::string getFileContent(const char* path);
 

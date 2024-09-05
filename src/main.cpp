@@ -7,6 +7,7 @@ std::string getShader(std::string path);
 
 int main(void)
 {
+
     if (glfwInit() == GLFW_FALSE)
         return 1;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

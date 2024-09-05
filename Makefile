@@ -22,6 +22,7 @@ $(shell mkdir -p $(BUILD_DIR))
 SRCS = \
 	$(SRCS_DIR)/main.cpp \
 	$(SRCS_DIR)/Shader.cpp \
+	$(SRCS_DIR)/Matrix4x4.cpp \
 	others/GLAD/src/glad.c 
 
 
