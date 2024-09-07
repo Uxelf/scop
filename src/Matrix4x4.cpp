@@ -81,7 +81,6 @@ mat4 mat4::operator*(const mat4& other) const{
     return m;
 }
 
-
 vec4 mat4::operator*(const vec4& v) const{
     vec4 result;
     for (int y = 0; y < 4; y++){
@@ -90,6 +89,16 @@ vec4 mat4::operator*(const vec4& v) const{
             result[y] += _mat[x][y] * v[x];
     }
     return result;
+}
+
+mat4 mat4::operator*(const float& n) const{
+    mat4 m;
+    for (int y = 0; y < 4; y++){
+        for(int x = 0; x < 4; x++){
+            m[x][y] = _mat[x][y] * n;
+        }
+    }
+    return m;
 }
 
 float* mat4::operator[](int index) {
@@ -119,40 +128,40 @@ mat4& mat4::translate(const float x, const float y, const float z){
 mat4& mat4::rotate(const float angle, const vec3 axi){
 
     float const a = DEG_TO_RAD(angle);
-    float c = cos(a);
-    float const s = sin(a);
+    float c = cosf(a);
+    float const s = sinf(a);
 
-    vec3 axis(axi.normalized());
-    vec3 temp(axis * (1.0f - c));
+    mat4 R;
+    mat4 I(1);
+    mat4 K;
 
-    mat4 Rotate;
-    Rotate[0][0] = c + temp[0] * axis[0];
-    Rotate[0][1] = temp[0] * axis[1] + s * axis[2];
-    Rotate[0][2] = temp[0] * axis[2] - s * axis[1];
+    I[3][3] = 0;
 
-    Rotate[1][0] = temp[1] * axis[0] - s * axis[2];
-    Rotate[1][1] = c + temp[1] * axis[1];
-    Rotate[1][2] = temp[1] * axis[2] + s * axis[0];
+    K[1][0] = -axi[2];
+    K[2][0] = axi[1];
+    K[0][1] = axi[2];
+    K[2][1] = -axi[0];
+    K[0][2] = -axi[2];
+    K[1][2] = axi[0];
 
-    Rotate[2][0] = temp[2] * axis[0] + s * axis[1];
-    Rotate[2][1] = temp[2] * axis[1] - s * axis[0];
-    Rotate[2][2] = c + temp[2] * axis[2];
+    R = I + (K * s) + (K * K) * (1 - c);
+    R[3][3] = 1;
 
-    mat4 Result;
+    mat4 result;
+    mat4 temp = *this;
 
-    for (int y = 0; y < 3; y++){
-        for(int x = 0; x < 3; x++){
-            Result[x][y] = .0f;
-            for (int i = 0; i < 3; i++)
-                Result[x][y] += _mat[i][x] * Rotate[y][i];
-        }
-    }
+    temp[3][0] = 0;
+    temp[3][1] = 0;
+    temp[3][2] = 0;
+    temp[3][3] = 0;
 
-    Result[3][0] = _mat[3][0];
-    Result[3][1] = _mat[3][1];
-    Result[3][2] = _mat[3][2];
-    
-    (*this) = Result;
+    result = R * temp;
+
+    result[3][0] = (*this)[3][0];
+    result[3][1] = (*this)[3][1];
+    result[3][2] = (*this)[3][2];
+    result[3][3] = (*this)[3][3];
+    *this = result;
 
     return *this;
 }

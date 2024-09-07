@@ -15,7 +15,7 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "OGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 800, "OGL", NULL, NULL);
 
     if (window == NULL){
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -31,7 +31,7 @@ int main(void)
         return -1;
     }  
 
-    glViewport(0, 0, 800, 600);
+    glViewport(0, 0, 800, 800);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glClearColor(0.2, 0.2, 0.2, 1.0f);
 
@@ -139,14 +139,7 @@ int main(void)
 
     //* Matrix thingis
 
-    mat4 trans(1.f);
-    // trans.rotate(90, vec3(0, 0, 1));
-    trans.scale(vec3(0.5, 0.5, 0.5));
-    trans.translate(0.2, 0, 0);
     
-    
-    GLuint transformLoc = glGetUniformLocation(shader.ID, "transform");
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans.value_ptr());
 
     //* Render loop
     
@@ -177,6 +170,14 @@ int main(void)
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
+
+        mat4 trans(1.f);
+        trans.translate(0.5, -0.5f, 0);
+        trans.rotate((float)glfwGetTime() * 8, vec3(0, 0, 1));
+        
+        
+        GLuint transformLoc = glGetUniformLocation(shader.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans.value_ptr());
 
         shader.use();
         

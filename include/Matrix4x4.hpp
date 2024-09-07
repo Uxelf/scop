@@ -24,6 +24,7 @@ public:
     mat4 operator-(const mat4& other) const;
     mat4 operator*(const mat4& other) const;
     vec4 operator*(const vec4& v) const;
+    mat4 operator*(const float& n) const;
 
     float* operator[](int index);
     const float* operator[](int index) const;
