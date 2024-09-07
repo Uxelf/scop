@@ -75,7 +75,7 @@ mat4 mat4::operator*(const mat4& other) const{
         for(int x = 0; x < 4; x++){
             m[x][y] = .0f;
             for (int i = 0; i < 4; i++)
-                m[x][y] += _mat[i][x] * other[y][i];
+                m[x][y] += _mat[i][y] * other[x][i];
         }
     }
     return m;
@@ -141,26 +141,15 @@ mat4& mat4::rotate(const float angle, const vec3 axi){
     K[2][0] = axi[1];
     K[0][1] = axi[2];
     K[2][1] = -axi[0];
-    K[0][2] = -axi[2];
+    K[0][2] = -axi[1];
     K[1][2] = axi[0];
 
     R = I + (K * s) + (K * K) * (1 - c);
     R[3][3] = 1;
 
     mat4 result;
-    mat4 temp = *this;
+    result = R * (*this);
 
-    temp[3][0] = 0;
-    temp[3][1] = 0;
-    temp[3][2] = 0;
-    temp[3][3] = 0;
-
-    result = R * temp;
-
-    result[3][0] = (*this)[3][0];
-    result[3][1] = (*this)[3][1];
-    result[3][2] = (*this)[3][2];
-    result[3][3] = (*this)[3][3];
     *this = result;
 
     return *this;
@@ -177,76 +166,3 @@ mat4& mat4::scale(const vec3 v){
 mat4& mat4::scale(const float x, const float y, const float z){
     return (scale(vec3(x, y, z)));
 }
-
-
-
-/* void mat4::debug(vec4 v){
-    std::cout << "(" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << ")" << std::endl;
-} */
-
-/* void mat4::identity(Mat4 m){
-    for (int i = 0; i < 4; i++){
-        for (int j = 0; j < 4; j++)
-            m[i][j] = (i == j)? 1.0f : .0f;
-    }
-} */
-
-/* void mat4::identity(Mat4 m, float val){
-    for (int i = 0; i < 4; i++){
-        for (int j = 0; j < 4; j++)
-            m[i][j] = (i == j)? val : .0f;
-    }
-} */
-
-/* void mat4::add(Mat4 result, const Mat4 a, const Mat4 b){
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            result[i][j] = a[i][j] + b[i][j];
-} */
-
-/* void mat4::sub(Mat4 result, const Mat4 a, const Mat4 b){
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            result[i][j] = a[i][j] - b[i][j];
-} */
-
-/* void mat4::mult(Mat4 result, const Mat4 a, const Mat4 b){
-    
-    for (int y = 0; y < 4; y++){
-        for(int x = 0; x < 4; x++){
-            result[x][y] = .0f;
-            for (int i = 0; i < 4; i++)
-                result[x][y] += a[i][x] * b[y][i];
-        }
-    }
-} */
-
-/* void mat4::mult_vec4(vec4 result, const Mat4 m, const vec4 v){
-    for (int y = 0; y < 4; y++){
-        result[y] = 0.0f;
-        for (int x = 0; x < 4; x++)
-            result[y] += m[x][y] * v[x];
-    }
-} */
-
-/* void mat4::clone(Mat4 dest, Mat4 src){
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            dest[i][j] = src[i][j];
-} */
-
-/* void mat4::translate(Mat4 m, float x, float y, float z){
-    m[3][0] += x;
-    m[3][1] += y;
-    m[3][2] += z;
-} */
-
-/* void mat4::translate(Mat4 m, vec3 v){
-    m[3][0] += v[0];
-    m[3][1] += v[1];
-    m[3][2] += v[2];
-} */
-
-/* void mat4::rotate(Mat4 m, float angle, vec4 axi){
-
-} */

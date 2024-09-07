@@ -172,8 +172,8 @@ int main(void)
         glBindTexture(GL_TEXTURE_2D, texture2);
 
         mat4 trans(1.f);
-        trans.translate(0.5, -0.5f, 0);
         trans.rotate((float)glfwGetTime() * 8, vec3(0, 0, 1));
+        trans.translate(0.5, -0.5f, 0);
         
         
         GLuint transformLoc = glGetUniformLocation(shader.ID, "transform");
