@@ -2,8 +2,28 @@
 #include "../include/scop.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 std::string getShader(std::string path);
+
+
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 800;
+
+vec3 cameraPos   = vec3(0.0f, 0.0f,  3.0f);
+vec3 cameraFront = vec3(0.0f, 0.0f, -1.0f);
+vec3 cameraUp    = vec3(0.0f, 1.0f,  0.0f);
+float pitch = 0;
+float yaw = -90;
+
+Camera camera(45, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1, 100.0f);
+
+float lastX = SCR_WIDTH / 2;
+float lastY = SCR_HEIGHT / 2;
+
+float deltaTime = 0.0f;	// Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
 
 int main(void)
 {
@@ -15,7 +35,7 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-    GLFWwindow* window = glfwCreateWindow(800, 800, "OGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OGL", NULL, NULL);
 
     if (window == NULL){
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -31,12 +51,13 @@ int main(void)
         return -1;
     }  
 
-    glViewport(0, 0, 800, 800);
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glClearColor(0.2, 0.2, 0.2, 1.0f);
 
-
-
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback); 
 
     Shader shader("shaders/default/default.vs", "shaders/default/default.fs");
 
@@ -44,18 +65,74 @@ int main(void)
 
 
 
-    float vertices[] = {
+    /* float vertices[] = {
         // positions          // texture coords
          0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // top right
          0.5f, -0.5f, 0.0f,   1.0f, 0.0f, // bottom right
         -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, // bottom left
         -0.5f,  0.5f, 0.0f,   0.0f, 1.0f  // top left 
+    }; */
+    float vertices[] = {
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
+
     unsigned int indices[] = {
         0, 1, 3, // first triangle
         1, 2, 3  // second triangle
     };
 
+    vec3 cubePositions[] = {
+        vec3( 0.0f,  0.0f,  0.0f),
+        vec3( 2.0f,  5.0f, -15.0f),
+        vec3(-1.5f, -2.2f, -2.5f),
+        vec3(-3.8f, -2.0f, -12.3f),
+        vec3 (2.4f, -0.4f, -3.5f),
+        vec3(-1.7f,  3.0f, -7.5f),
+        vec3( 1.3f, -2.0f, -2.5f),
+        vec3( 1.5f,  2.0f, -2.5f),
+        vec3( 1.5f,  0.2f, -1.5f),
+        vec3(-1.3f,  1.0f, -1.5f)
+    };
 
     //*Vertex things objects
     
@@ -136,58 +213,93 @@ int main(void)
     shader.setInt("texture1", 0);
     shader.setInt("texture2", 1);
 
-
-    //* Matrix thingis
-
-    
-
     //* Render loop
+
     
+    glEnable(GL_DEPTH_TEST);
     // glPolygonMode(GL_FRONT_AND_BACK, [MODE]); // GL_LINE = Wireframe ; GL_FILL = Fill
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); //Vsync (not working in dual monitor + wsl set up)
 
-    float mixVal = 0.2;
-    shader.setFloat("mixValue", mixVal);
 
     while(!glfwWindowShouldClose(window)){
         
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;  
+
         processInput(window);
         
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
-                mixVal = std::min(1.0f, mixVal + 0.001f);
-                shader.setFloat("mixValue", mixVal);
-        }
-        else if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
-                mixVal = std::max(.0f, mixVal - 0.001f);
-                shader.setFloat("mixValue", mixVal);
-        }
         
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
 
-        mat4 trans(1.f);
-        trans.rotate((float)glfwGetTime() * 8, vec3(0, 0, 1));
-        trans.translate(0.5, -0.5f, 0);
-        
-        
-        GLuint transformLoc = glGetUniformLocation(shader.ID, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans.value_ptr());
-
+    
         shader.use();
+    
+        // mat4 model(1.f);
+        // model.rotate(glfwGetTime() * 50, vec3(0.5, 1, 0));
+        // model.scale(vec3(1, 1, 1) * sin(glfwGetTime()) * 2);
+
+        camera.lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+        mat4 projection = camera.getPerspectiveProjection();
+        mat4 view = camera.getViewMatrix();
+        
+        shader.setMat4("view", view);
+        shader.setMat4("projection", projection);
+        // int modelLoc = glGetUniformLocation(shader.ID, "model");
+        // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.value_ptr());
+        // int viewLoc = glGetUniformLocation(shader.ID, "view");
+        // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.value_ptr());
+        // int projectionLoc = glGetUniformLocation(shader.ID, "projection");
+        // glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projection.value_ptr());
+
         
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        // glDrawArrays(GL_TRIANGLES, 0, 36);
+        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time 
+        
+
+        for (unsigned int i = 0; i < 10; i++)
+        {
+            // calculate the model matrix for each object and pass it to shader before drawing
+            mat4 model = mat4(1.0f);
+            float angle = 20.0f * i;
+            model.rotate(angle, vec3(1.0f, 0.3f, 0.5f));
+            model.translate(cubePositions[i]);
+            shader.setMat4("model", model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        /* GLenum error = glGetError();
+        if (error != GL_NO_ERROR){
+            const char* errorString = nullptr;
+            switch (error) {
+                case GL_INVALID_ENUM:      errorString = "GL_INVALID_ENUM"; break;
+                case GL_INVALID_VALUE:     errorString = "GL_INVALID_VALUE"; break;
+                case GL_INVALID_OPERATION: errorString = "GL_INVALID_OPERATION"; break;
+                case GL_STACK_OVERFLOW:    errorString = "GL_STACK_OVERFLOW"; break;
+                case GL_STACK_UNDERFLOW:   errorString = "GL_STACK_UNDERFLOW"; break;
+                case GL_OUT_OF_MEMORY:     errorString = "GL_OUT_OF_MEMORY"; break;
+                case GL_INVALID_FRAMEBUFFER_OPERATION: errorString = "GL_INVALID_FRAMEBUFFER_OPERATION"; break;
+                default:                   errorString = "Unknown error"; break;
+            }
+
+            std::cerr << errorString;
+            glfwSetWindowShouldClose(window, true);
+        } */
     }
 
 
@@ -203,4 +315,64 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 void processInput(GLFWwindow* window){
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    const float cameraSpeed = 2.5f;
+    /* vec3 fpsDirection;
+    fpsDirection[0] = cos(DEG_TO_RAD(yaw));
+    fpsDirection[2] = sin(DEG_TO_RAD(yaw));
+    fpsDirection = fpsDirection.normalized(); */
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos = cameraPos + cameraFront * cameraSpeed * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos = cameraPos - cameraFront * cameraSpeed * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos = cameraPos - cross(cameraFront, cameraUp).normalized() * cameraSpeed * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos = cameraPos + cross(cameraFront, cameraUp).normalized() * cameraSpeed * deltaTime;
+}
+
+bool firstMouse = true;
+void mouse_callback(GLFWwindow* window, double xpos, double ypos){
+    
+    if (firstMouse){
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+    
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    const float sensitivity = 0.001f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    else if (pitch < -89.0f)
+        pitch = -89.0f;
+
+        
+    vec3 direction;
+    direction[0] = cos(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
+    direction[1] = sin(DEG_TO_RAD(pitch));
+    direction[2] = sin(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
+
+    cameraFront = direction.normalized();
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    float fov = camera.getFov() - (float)yoffset;
+    if (fov < 1.0f)
+        fov = 1.0f;
+    if (fov > 90.0f)
+        fov = 90.0f;
+
+    camera.setFov(fov);
 }

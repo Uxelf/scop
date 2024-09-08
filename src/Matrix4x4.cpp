@@ -134,15 +134,16 @@ mat4& mat4::rotate(const float angle, const vec3 axi){
     mat4 R;
     mat4 I(1);
     mat4 K;
+    vec3 n_axi = axi.normalized();
 
     I[3][3] = 0;
 
-    K[1][0] = -axi[2];
-    K[2][0] = axi[1];
-    K[0][1] = axi[2];
-    K[2][1] = -axi[0];
-    K[0][2] = -axi[1];
-    K[1][2] = axi[0];
+    K[1][0] = -n_axi[2];
+    K[2][0] = n_axi[1];
+    K[0][1] = n_axi[2];
+    K[2][1] = -n_axi[0];
+    K[0][2] = -n_axi[1];
+    K[1][2] = n_axi[0];
 
     R = I + (K * s) + (K * K) * (1 - c);
     R[3][3] = 1;

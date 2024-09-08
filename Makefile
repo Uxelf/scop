@@ -25,6 +25,7 @@ SRCS = \
 	$(SRCS_DIR)/Matrix4x4.cpp \
 	$(SRCS_DIR)/Vector3.cpp \
 	$(SRCS_DIR)/Vector4.cpp \
+	$(SRCS_DIR)/Camera.cpp \
 	others/GLAD/src/glad.c 
 
 

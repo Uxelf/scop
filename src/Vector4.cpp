@@ -26,13 +26,33 @@ const float& vec4::operator[](int index) const {
     return data[index];
 }
 
-vec4& vec4::operator*(const float n){
-    data[0] *= n;
-    data[1] *= n;
-    data[2] *= n;
-    data[3] *= n;
-    return *this;
+vec4 vec4::operator*(const float n) const{
+    return (vec4(
+    data[0] * n,
+    data[1] * n,
+    data[2] * n,
+    data[3] * n
+    ));
 }
+
+vec4 vec4::operator+(const vec4& other) const{
+    return (vec4(
+    data[0] + other[0],
+    data[1] + other[1],
+    data[2] + other[2],
+    data[3] + other[3]
+    ));
+}
+
+vec4 vec4::operator-(const vec4& other) const{
+    return (vec4(
+    data[0] - other[0],
+    data[1] - other[1],
+    data[2] - other[2],
+    data[3] - other[3]
+    ));
+}
+
 
 vec4 vec4::normalized(){
     float length = sqrt(pow(data[0], 2) + pow(data[1], 2) + pow(data[2], 2) + pow(data[3], 2));
