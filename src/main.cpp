@@ -25,6 +25,8 @@ float lastY = SCR_HEIGHT / 2;
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
+vec3 lightPos(1.2f, 1.0f, 2.0f);
+
 int main(void)
 {
 
@@ -56,107 +58,77 @@ int main(void)
     glClearColor(0.2, 0.2, 0.2, 1.0f);
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);
+    //glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback); 
 
-    Shader shader("shaders/default/default.vs", "shaders/default/default.fs");
+    Shader lightShader("shaders/light/light.vs", "shaders/light/light.fs");
+    Shader unlitShader("shaders/unlit/unlit.vs", "shaders/unlit/unlit.fs");
 
     //*---------------------------
 
 
 
-    /* float vertices[] = {
-        // positions          // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,   1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   0.0f, 1.0f  // top left 
-    }; */
     float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
 
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-    };
-
-    unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
-
-    vec3 cubePositions[] = {
-        vec3( 0.0f,  0.0f,  0.0f),
-        vec3( 2.0f,  5.0f, -15.0f),
-        vec3(-1.5f, -2.2f, -2.5f),
-        vec3(-3.8f, -2.0f, -12.3f),
-        vec3 (2.4f, -0.4f, -3.5f),
-        vec3(-1.7f,  3.0f, -7.5f),
-        vec3( 1.3f, -2.0f, -2.5f),
-        vec3( 1.5f,  2.0f, -2.5f),
-        vec3( 1.5f,  0.2f, -1.5f),
-        vec3(-1.3f,  1.0f, -1.5f)
-    };
-
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+};
     //*Vertex things objects
     
-    unsigned int VAO;
+    unsigned int lightVAO;
     unsigned int VBO;
-    unsigned int EBO;
 
-    glGenVertexArrays(1, &VAO); 
+    glGenVertexArrays(1, &lightVAO); 
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
     
-    glBindVertexArray(VAO);
+    glBindVertexArray(lightVAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
     
     
@@ -165,54 +137,12 @@ int main(void)
     glBindVertexArray(0);
 
 
-    //* Textures
-
-    stbi_set_flip_vertically_on_load(true);
-
-    unsigned int texture1, texture2;
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load("textures/container.jpg", &width, &height, &nrChannels, 0);
-    if (data){
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else{
-        std::cerr << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
-
-
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    data = stbi_load("textures/awesomeface.png", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else{
-        std::cerr << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
-
-
-    shader.use();
-    shader.setInt("texture1", 0);
-    shader.setInt("texture2", 1);
-
+    
+    lightShader.use();
+    lightShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+    lightShader.setVec3("ambientLightColor",  0.2, 0.2, 0.2);
+    lightShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
+    lightShader.setVec3("lightPos", lightPos);
     //* Render loop
 
     
@@ -220,7 +150,9 @@ int main(void)
     // glPolygonMode(GL_FRONT_AND_BACK, [MODE]); // GL_LINE = Wireframe ; GL_FILL = Fill
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); //Vsync (not working in dual monitor + wsl set up)
-
+    
+    /* lightShader.setVec3("objectColor", 0.8f, 0.4f, 0.7f);
+    lightShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f); */
 
     while(!glfwWindowShouldClose(window)){
         
@@ -230,29 +162,37 @@ int main(void)
 
         processInput(window);
         
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2);
 
-    
-        shader.use();
-    
-        // mat4 model(1.f);
-        // model.rotate(glfwGetTime() * 50, vec3(0.5, 1, 0));
-        // model.scale(vec3(1, 1, 1) * sin(glfwGetTime()) * 2);
+        lightShader.use();
 
         camera.lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
         mat4 projection = camera.getPerspectiveProjection();
         mat4 view = camera.getViewMatrix();
+        mat4 model(1);
         
-        shader.setMat4("view", view);
-        shader.setMat4("projection", projection);
+        lightShader.setMat4("projection", projection);
+        lightShader.setMat4("view", view);
+        lightShader.setMat4("model", model);
+
+        glBindVertexArray(lightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+        unlitShader.use();
+
+        model = mat4(1);
+        model.scale(0.4, 0.4, 0.4);
+        model.translate(lightPos);
+
+        unlitShader.setMat4("projection", projection);
+        unlitShader.setMat4("view", view);
+        unlitShader.setMat4("model", model);
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
         // int modelLoc = glGetUniformLocation(shader.ID, "model");
         // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.value_ptr());
         // int viewLoc = glGetUniformLocation(shader.ID, "view");
@@ -261,24 +201,12 @@ int main(void)
         // glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projection.value_ptr());
 
         
-        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time
+        // glBindVertexArray(lightVAO); // seeing as we only have a single VAO there's no need to bind it every time
         // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         // glDrawArrays(GL_TRIANGLES, 0, 36);
         // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time 
         
-
-        for (unsigned int i = 0; i < 10; i++)
-        {
-            // calculate the model matrix for each object and pass it to shader before drawing
-            mat4 model = mat4(1.0f);
-            float angle = 20.0f * i;
-            model.rotate(angle, vec3(1.0f, 0.3f, 0.5f));
-            model.translate(cubePositions[i]);
-            shader.setMat4("model", model);
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -312,6 +240,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
     glViewport(0, 0, width, height);
 }
 
+void calRot(const float& pitchAdd, const float& yawAdd);
 void processInput(GLFWwindow* window){
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -329,6 +258,39 @@ void processInput(GLFWwindow* window){
         cameraPos = cameraPos - cross(cameraFront, cameraUp).normalized() * cameraSpeed * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos = cameraPos + cross(cameraFront, cameraUp).normalized() * cameraSpeed * deltaTime;
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        cameraPos = cameraPos + vec3(0, 1, 0) * cameraSpeed * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        cameraPos = cameraPos - vec3(0, 1, 0) * cameraSpeed * deltaTime;
+
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        calRot(1, 0);
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        calRot(-1, 0);
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        calRot(0, 1);
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        calRot(0, -1);
+}
+
+void calRot(const float& pitchAdd, const float& yawAdd){
+
+    const float sensitivity = 0.04;
+    yaw += yawAdd * sensitivity;
+    pitch += pitchAdd * sensitivity;
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    else if (pitch < -89.0f)
+        pitch = -89.0f;
+
+        
+    vec3 direction;
+    direction[0] = cos(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
+    direction[1] = sin(DEG_TO_RAD(pitch));
+    direction[2] = sin(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
+
+    cameraFront = direction.normalized();
 }
 
 bool firstMouse = true;
