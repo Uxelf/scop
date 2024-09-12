@@ -25,8 +25,6 @@ float lastY = SCR_HEIGHT / 2;
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
-vec3 lightPos(1.2f, 1.0f, 2.0f);
-
 int main(void)
 {
 
@@ -35,7 +33,6 @@ int main(void)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OGL", NULL, NULL);
 
@@ -61,7 +58,7 @@ int main(void)
     //glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback); 
 
-    Shader lightShader("shaders/light/light.vs", "shaders/light/light.fs");
+    Shader lightShader("shaders/lit/light.vs", "shaders/lit/light.fs");
     Shader unlitShader("shaders/unlit/unlit.vs", "shaders/unlit/unlit.fs");
 
     //*---------------------------
@@ -137,11 +134,13 @@ int main(void)
     glBindVertexArray(0);
 
 
+    vec3 ambient_color(0.1, 0.1, 0.2);
+    vec3 light_color(1.0f, 1.0f, 1.0f);
     
     lightShader.use();
     lightShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-    lightShader.setVec3("ambientLightColor",  0.2, 0.2, 0.2);
-    lightShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
+    lightShader.setVec3("ambientLightColor", ambient_color);
+    lightShader.setVec3("lightColor", light_color);
     lightShader.setVec3("lightPos", lightPos);
     //* Render loop
 
@@ -161,7 +160,6 @@ int main(void)
         lastFrame = currentFrame;  
 
         processInput(window);
-        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -190,6 +188,8 @@ int main(void)
         unlitShader.setMat4("projection", projection);
         unlitShader.setMat4("view", view);
         unlitShader.setMat4("model", model);
+
+        unlitShader.setVec3("objectColor", light_color);
 
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -236,6 +236,160 @@ int main(void)
     return 0;
 }
 
+
+class Object;
+class Material;
+class Light;
+#include <vector>
+
+int load_project(int argc, char** argv){
+
+    if (argc < 2){
+        std::cerr << "Need more arguments" << std::endl;
+        return 1;
+    }
+
+    //* Window management
+
+    if (glfwInit() == GLFW_FALSE)
+        return 1;
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OGL", NULL, NULL);
+
+    if (window == NULL){
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return 1;
+    }
+    glfwMakeContextCurrent(window);
+
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }  
+
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glClearColor(0.2, 0.2, 0.2, 1.0f);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+
+    //* Shaders load
+
+    Shader shader_lit("./shaders/lit/lit.vs", "./shaders/lit/lit.fs");
+    Shader shader_unlit("./shaders/lit/unlit.vs", "./shaders/lit/unlit.fs");
+
+
+    //* Objects load
+
+    std::vector<Object> obs;
+    Material material_lit(shader_lit);
+
+    for (int i = 1; i < argc; i++){
+        try{
+            Object ob(argv[i], material_lit);
+            obs.push_back(ob);
+        }
+        catch (std::exception e){
+            std::cerr << e.what() << std::endl;
+        }
+    }
+
+
+    //* Objects customization
+
+
+
+
+    //* Lights
+
+    vec3 ambient_light_color(0.1, 0.1, 0.1);
+    vec3 light_color(1, 1, 1);
+    vec3 light_pos(1.2f, 1.0f, 2.0f);
+
+
+    //* Uniform buffers objects
+
+    unsigned int UBO_matrices;
+    glGenBuffers(1, &UBO_matrices);
+    glBindBuffer(GL_UNIFORM_BUFFER, UBO_matrices);
+    glBufferData(GL_UNIFORM_BUFFER, 2 * MAT4_SIZE, NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    unsigned int UBO_lights;
+    glGenBuffers(1, &UBO_lights);
+    glBindBuffer(GL_UNIFORM_BUFFER, UBO_lights);
+    glBufferData(GL_UNIFORM_BUFFER, 3 * VEC3_SIZE, NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    GLuint matrices_binding_point = 0;
+    GLuint lights_binding_point = 1;
+
+    unsigned int uniform_block_index_lit_matrices = glGetUniformBlockIndex(shader_lit.ID, "Matrices");
+    unsigned int uniform_block_index_unlit_matrices = glGetUniformBlockIndex(shader_unlit.ID, "Matrices");
+    unsigned int uniform_block_index_lit_lights = glGetUniformBlockIndex(shader_unlit.ID, "Lights");
+
+    glUniformBlockBinding(shader_lit.ID, uniform_block_index_lit_matrices, matrices_binding_point);
+    glUniformBlockBinding(shader_unlit.ID, uniform_block_index_unlit_matrices, matrices_binding_point);
+    glUniformBlockBinding(shader_lit.ID, uniform_block_index_lit_lights, lights_binding_point);
+
+    glBindBufferBase(GL_UNIFORM_BUFFER, matrices_binding_point, UBO_matrices);
+    glBindBufferBase(GL_UNIFORM_BUFFER, lights_binding_point, UBO_lights);
+    
+    glBindBuffer(GL_UNIFORM_BUFFER, UBO_lights);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, VEC3_SIZE, ambient_light_color.value_ptr());
+    glBufferSubData(GL_UNIFORM_BUFFER, VEC3_SIZE, VEC3_SIZE, light_color.value_ptr());
+    glBufferSubData(GL_UNIFORM_BUFFER, 2 * VEC3_SIZE, VEC3_SIZE, light_pos.value_ptr());
+
+
+    //* Render settigns
+
+    glEnable(GL_DEPTH_TEST);
+    // glPolygonMode(GL_FRONT_AND_BACK, [MODE]); // GL_LINE = Wireframe ; GL_FILL = Fill
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1); //Vsync (not working in dual monitor + wsl set up)
+
+
+    //* Render loop
+
+    while(!glfwWindowShouldClose(window)){
+        
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;  
+
+        processInput(window);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        camera.lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        mat4 projection = camera.getPerspectiveProjection();
+        mat4 view = camera.getViewMatrix();
+
+        glBindBuffer(GL_UNIFORM_BUFFER, UBO_matrices);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, MAT4_SIZE, projection.value_ptr());
+        glBufferSubData(GL_UNIFORM_BUFFER, MAT4_SIZE, MAT4_SIZE, view.value_ptr());
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        for (int i = 0; i < obs.size(); i++)
+            obs[i].render();
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    
+    glfwTerminate();
+    return 0;
+}
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){
     glViewport(0, 0, width, height);
 }
@@ -276,7 +430,7 @@ void processInput(GLFWwindow* window){
 
 void calRot(const float& pitchAdd, const float& yawAdd){
 
-    const float sensitivity = 0.04;
+    const float sensitivity = 0.08;
     yaw += yawAdd * sensitivity;
     pitch += pitchAdd * sensitivity;
     if (pitch > 89.0f)

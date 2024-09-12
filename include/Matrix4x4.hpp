@@ -5,6 +5,7 @@
 #include <Vector4.hpp>
 #include <Vector3.hpp>
 
+#define MAT4_SIZE sizeof(float) * 16
 #define DEG_TO_RAD(degrees) ((degrees) * (M_PI / 180.0))
 
 class mat4

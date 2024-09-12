@@ -86,6 +86,10 @@ unsigned int createProgramID(const char* vShaderCode, const char* fShaderCode){
     return ID;
 }
 
+Shader::Shader(const Shader& other){
+    ID = other.ID;
+}
+
 void Shader::use(){
     glUseProgram(ID);
 }

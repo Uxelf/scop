@@ -118,9 +118,9 @@ mat4& mat4::translate(const vec3 v){
 }
 
 mat4& mat4::translate(const float x, const float y, const float z){
-    _mat[3][0] += x;
-    _mat[3][1] += y;
-    _mat[3][2] += z;
+    _mat[3][0] = x;
+    _mat[3][1] = y;
+    _mat[3][2] = z;
     
     return *this;
 }

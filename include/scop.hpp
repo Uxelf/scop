@@ -13,3 +13,4 @@
 #include <Vector3.hpp>
 #include <Vector4.hpp>
 #include <Camera.hpp>
+#include <Object.hpp>

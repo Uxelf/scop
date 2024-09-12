@@ -5,15 +5,19 @@
 #include <math.h>
 #include <iostream>
 
+#define VEC3_SIZE sizeof(float) * 3
+
 class vec3
 {
 private:
-    float data[3];
+    float _data[3];
 public:
     vec3();
     vec3(float x, float y, float z);
     ~vec3();
 
+    const float* value_ptr() const;
+    
     float& operator[](int index);
     const float& operator[](int index) const;
 

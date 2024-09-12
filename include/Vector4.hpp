@@ -8,11 +8,13 @@
 class vec4
 {
 private:
-    float data[4];
+    float _data[4];
 public:
     vec4();
     vec4(float x, float y, float z, float w);
     ~vec4();
+
+    const float* value_ptr() const;
 
     float& operator[](int index);
     const float& operator[](int index) const;

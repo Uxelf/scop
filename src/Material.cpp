@@ -1,0 +1,35 @@
+#include <Material.hpp>
+
+Material::Material(const Shader& shader, const vec3& color, const std::string& texturePath):
+    _shader(shader), _color(color) {
+    if (texturePath == ""){
+        _use_texture = false;
+        return;
+    }
+
+    _texture.data = stbi_load("container.jpg", &_texture.width, &_texture.height, &_texture.nrChannels, 0);
+    if (_texture.data){
+        glGenTextures(1, &_texture.ID);
+        glBindTexture(GL_TEXTURE_2D, _texture.ID);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _texture.width, _texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, _texture.data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        stbi_image_free(_texture.data);
+        _use_texture = true;
+    }
+    else{
+        std::cerr << "Failed to load texture: " << texturePath << std::endl;
+    }
+}
+
+Material::Material(const Material& other): 
+    _shader(other._shader), _color(other._color), _texture(other._texture), _use_texture(other._use_texture) {
+}
+
+Material::~Material(){
+}
