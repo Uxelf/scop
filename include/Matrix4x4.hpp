@@ -14,6 +14,7 @@ private:
     float _mat[4][4];
 public:
     mat4();
+    mat4(const mat4& other);
     mat4(float n);
     ~mat4();
 

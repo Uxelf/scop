@@ -1,12 +1,10 @@
+#pragma once
 #ifndef MATERIAL_HPP
 #define MATERIAL_HPP
 
 #include <Shader.hpp>
 #include <Vector3.hpp>
 #include <string>
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 
 struct Texture{
     unsigned int ID;
@@ -36,6 +34,7 @@ public:
     const Texture getTexture() const {return _texture;}
 
     void useShader() {_shader.use();}
+    void setGenericShadersUniforms();
 };
 
 #endif

@@ -7,6 +7,13 @@ mat4::mat4(){
     }
 }
 
+mat4::mat4(const mat4& other){
+    for (int i = 0; i < 4; i++){
+        for (int j = 0; j < 4; j++)
+            _mat[i][j] = other[i][j];
+    }
+}
+
 mat4::mat4(float n){
     for (int i = 0; i < 4; i++){
         for (int j = 0; j < 4; j++)

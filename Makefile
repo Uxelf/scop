@@ -2,10 +2,10 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -Iincludes -std=c++20 -MMD -MP
+CXXFLAGS = -Iincludes -std=c++20 -MMD -MP -Wall -Werror -Wextra -g -O0
 
 # Linker flags
-LDFLAGS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi
+LDFLAGS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -g -O0
 
 # Directories
 SRCS_DIR = src
@@ -20,12 +20,14 @@ $(shell mkdir -p $(BUILD_DIR))
 
 # Source files
 SRCS = \
+	$(SRCS_DIR)/Camera.cpp \
 	$(SRCS_DIR)/main.cpp \
-	$(SRCS_DIR)/Shader.cpp \
+	$(SRCS_DIR)/Material.cpp \
 	$(SRCS_DIR)/Matrix4x4.cpp \
+	$(SRCS_DIR)/Object.cpp \
+	$(SRCS_DIR)/Shader.cpp \
 	$(SRCS_DIR)/Vector3.cpp \
 	$(SRCS_DIR)/Vector4.cpp \
-	$(SRCS_DIR)/Camera.cpp \
 	others/GLAD/src/glad.c 
 
 
@@ -64,6 +66,6 @@ clean:
 re: clean all
 
 run: all
-	./$(TARGET)
+	./$(TARGET) resources/42.obj
 
 .PHONY: all clean re run

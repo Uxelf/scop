@@ -31,9 +31,10 @@ std::string getFileContent(const char* path){
         // convert stream into string
         code = shaderStream.str();
     }
-    catch(std::ifstream::failure e)
+    catch(const std::ifstream::failure& e)
     {
         std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+        std::cout << e.what() << std::endl;
     }
     return code;
 }

@@ -1,5 +1,8 @@
 #include <Material.hpp>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 Material::Material(const Shader& shader, const vec3& color, const std::string& texturePath):
     _shader(shader), _color(color) {
     if (texturePath == ""){
@@ -7,7 +10,7 @@ Material::Material(const Shader& shader, const vec3& color, const std::string& t
         return;
     }
 
-    _texture.data = stbi_load("container.jpg", &_texture.width, &_texture.height, &_texture.nrChannels, 0);
+    _texture.data = stbi_load(texturePath.c_str(), &_texture.width, &_texture.height, &_texture.nrChannels, 0);
     if (_texture.data){
         glGenTextures(1, &_texture.ID);
         glBindTexture(GL_TEXTURE_2D, _texture.ID);
@@ -32,4 +35,12 @@ Material::Material(const Material& other):
 }
 
 Material::~Material(){
+}
+
+void Material::setGenericShadersUniforms(){
+    _shader.setVec3("objectColor", _color);
+    _shader.setInt("useTexture", _use_texture);
+
+    if (_use_texture)
+        glBindTexture(GL_TEXTURE_2D, _texture.ID);
 }

@@ -32,7 +32,7 @@ public:
 
     void render();
 
-    const mat4& getModel() const {return _model;}
+    const mat4&  getModel() const {return _model;}
     const vec3  getPosition() const {return _position;}
     const vec3  getRotation() const {return _rotation;}
     const vec3  getScale() const {return _scale;}

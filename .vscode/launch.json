@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Scop",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/scop", // Path to your executable
+            "args": ["resources/c.obj"], // Arguments to pass to your program, if any
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}", // Working directory for your program
+            "environment": [],
+            "externalConsole": false, // Use an external console for input/output
+            "MIMode": "gdb", // or "lldb" if you use LLDB
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "run the makefile", // Optional: specify a pre-launch task if you want to build before debugging
+            "miDebuggerPath": "/usr/bin/gdb", // Path to the debugger; adjust if necessary
+            "miDebuggerArgs": "", // Additional arguments for the debugger, if needed
+            "logging": {
+                "engineLogging": true, // Optional: Enable engine logging for debugging launch issues
+                "trace": true,
+                "traceResponse": true
+            }
+        }
+    ]
+}

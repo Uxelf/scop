@@ -34,8 +34,8 @@ public:
     void setNearPlane(const float near) {_near = near; calculateProjectionMatrix();}
     void setFarPlane(const float far) { _far = far; calculateProjectionMatrix();}
 
-    const float getFov() const {return _fov;}
-    const float getAspect() const {return _aspect;}
+    float getFov() const {return _fov;}
+    float getAspect() const {return _aspect;}
      
     void lookAt(const vec3& position, const vec3& target, const vec3& up);
 };

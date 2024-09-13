@@ -25,224 +25,9 @@ float lastY = SCR_HEIGHT / 2;
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
-int main(void)
-{
 
-    if (glfwInit() == GLFW_FALSE)
-        return 1;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OGL", NULL, NULL);
-
-    if (window == NULL){
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return 1;
-    }
-    glfwMakeContextCurrent(window);
-
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }  
-
-    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glClearColor(0.2, 0.2, 0.2, 1.0f);
-
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    //glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback); 
-
-    Shader lightShader("shaders/lit/light.vs", "shaders/lit/light.fs");
-    Shader unlitShader("shaders/unlit/unlit.vs", "shaders/unlit/unlit.fs");
-
-    //*---------------------------
-
-
-
-    float vertices[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
-};
-    //*Vertex things objects
-    
-    unsigned int lightVAO;
-    unsigned int VBO;
-
-    glGenVertexArrays(1, &lightVAO); 
-    glGenBuffers(1, &VBO);
-    
-    glBindVertexArray(lightVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    
-    
-    //* Unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-
-    vec3 ambient_color(0.1, 0.1, 0.2);
-    vec3 light_color(1.0f, 1.0f, 1.0f);
-    
-    lightShader.use();
-    lightShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-    lightShader.setVec3("ambientLightColor", ambient_color);
-    lightShader.setVec3("lightColor", light_color);
-    lightShader.setVec3("lightPos", lightPos);
-    //* Render loop
-
-    
-    glEnable(GL_DEPTH_TEST);
-    // glPolygonMode(GL_FRONT_AND_BACK, [MODE]); // GL_LINE = Wireframe ; GL_FILL = Fill
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); //Vsync (not working in dual monitor + wsl set up)
-    
-    /* lightShader.setVec3("objectColor", 0.8f, 0.4f, 0.7f);
-    lightShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f); */
-
-    while(!glfwWindowShouldClose(window)){
-        
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;  
-
-        processInput(window);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-        lightShader.use();
-
-        camera.lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
-        mat4 projection = camera.getPerspectiveProjection();
-        mat4 view = camera.getViewMatrix();
-        mat4 model(1);
-        
-        lightShader.setMat4("projection", projection);
-        lightShader.setMat4("view", view);
-        lightShader.setMat4("model", model);
-
-        glBindVertexArray(lightVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-
-        unlitShader.use();
-
-        model = mat4(1);
-        model.scale(0.4, 0.4, 0.4);
-        model.translate(lightPos);
-
-        unlitShader.setMat4("projection", projection);
-        unlitShader.setMat4("view", view);
-        unlitShader.setMat4("model", model);
-
-        unlitShader.setVec3("objectColor", light_color);
-
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-        // int modelLoc = glGetUniformLocation(shader.ID, "model");
-        // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.value_ptr());
-        // int viewLoc = glGetUniformLocation(shader.ID, "view");
-        // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.value_ptr());
-        // int projectionLoc = glGetUniformLocation(shader.ID, "projection");
-        // glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projection.value_ptr());
-
-        
-        // glBindVertexArray(lightVAO); // seeing as we only have a single VAO there's no need to bind it every time
-        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        // glDrawArrays(GL_TRIANGLES, 0, 36);
-        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        // glBindVertexArray(0); // no need to unbind it every time 
-        
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-
-        /* GLenum error = glGetError();
-        if (error != GL_NO_ERROR){
-            const char* errorString = nullptr;
-            switch (error) {
-                case GL_INVALID_ENUM:      errorString = "GL_INVALID_ENUM"; break;
-                case GL_INVALID_VALUE:     errorString = "GL_INVALID_VALUE"; break;
-                case GL_INVALID_OPERATION: errorString = "GL_INVALID_OPERATION"; break;
-                case GL_STACK_OVERFLOW:    errorString = "GL_STACK_OVERFLOW"; break;
-                case GL_STACK_UNDERFLOW:   errorString = "GL_STACK_UNDERFLOW"; break;
-                case GL_OUT_OF_MEMORY:     errorString = "GL_OUT_OF_MEMORY"; break;
-                case GL_INVALID_FRAMEBUFFER_OPERATION: errorString = "GL_INVALID_FRAMEBUFFER_OPERATION"; break;
-                default:                   errorString = "Unknown error"; break;
-            }
-
-            std::cerr << errorString;
-            glfwSetWindowShouldClose(window, true);
-        } */
-    }
-
-
-
-    glfwTerminate();
-    return 0;
-}
-
-
-class Object;
-class Material;
-class Light;
-#include <vector>
-
-int load_project(int argc, char** argv){
+//int load_project(int argc, char** argv){
+int main(int argc, char** argv){
 
     if (argc < 2){
         std::cerr << "Need more arguments" << std::endl;
@@ -270,7 +55,7 @@ int load_project(int argc, char** argv){
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
+        return 1;
     }  
 
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
@@ -285,24 +70,24 @@ int load_project(int argc, char** argv){
     //* Shaders load
 
     Shader shader_lit("./shaders/lit/lit.vs", "./shaders/lit/lit.fs");
-    Shader shader_unlit("./shaders/lit/unlit.vs", "./shaders/lit/unlit.fs");
+    Shader shader_unlit("./shaders/unlit/unlit.vs", "./shaders/unlit/unlit.fs");
 
 
     //* Objects load
 
-    std::vector<Object> obs;
-    Material material_lit(shader_lit);
+    /* std::vector<Object> obs;
+    Material material_lit(shader_lit, vec3(1, 1, 1), "");
 
     for (int i = 1; i < argc; i++){
-        try{
             Object ob(argv[i], material_lit);
             obs.push_back(ob);
-        }
-        catch (std::exception e){
-            std::cerr << e.what() << std::endl;
-        }
-    }
+    } */
 
+   Material material_lit(shader_lit, vec3(1, 1, 1), "");
+   Material material_unlit(shader_unlit, vec3(1, 1, 1), "");
+   Object ob(argv[1], material_lit);
+
+    ob.move(vec3(0, 0, -2));
 
     //* Objects customization
 
@@ -335,7 +120,7 @@ int load_project(int argc, char** argv){
 
     unsigned int uniform_block_index_lit_matrices = glGetUniformBlockIndex(shader_lit.ID, "Matrices");
     unsigned int uniform_block_index_unlit_matrices = glGetUniformBlockIndex(shader_unlit.ID, "Matrices");
-    unsigned int uniform_block_index_lit_lights = glGetUniformBlockIndex(shader_unlit.ID, "Lights");
+    unsigned int uniform_block_index_lit_lights = glGetUniformBlockIndex(shader_lit.ID, "Lights");
 
     glUniformBlockBinding(shader_lit.ID, uniform_block_index_lit_matrices, matrices_binding_point);
     glUniformBlockBinding(shader_unlit.ID, uniform_block_index_unlit_matrices, matrices_binding_point);
@@ -358,6 +143,7 @@ int load_project(int argc, char** argv){
     glfwSwapInterval(1); //Vsync (not working in dual monitor + wsl set up)
 
 
+
     //* Render loop
 
     while(!glfwWindowShouldClose(window)){
@@ -370,16 +156,18 @@ int load_project(int argc, char** argv){
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camera.lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        mat4 projection = camera.getPerspectiveProjection();
-        mat4 view = camera.getViewMatrix();
+        const mat4& projection = camera.getPerspectiveProjection();
+        const mat4& view = camera.getViewMatrix();
 
         glBindBuffer(GL_UNIFORM_BUFFER, UBO_matrices);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, MAT4_SIZE, projection.value_ptr());
         glBufferSubData(GL_UNIFORM_BUFFER, MAT4_SIZE, MAT4_SIZE, view.value_ptr());
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-        for (int i = 0; i < obs.size(); i++)
-            obs[i].render();
+        /* for (unsigned int i = 0; i < obs.size(); i++)
+            obs[i].render(); */
+        ob.render();
+        //ob.rotate(vec3(0, 90 * deltaTime, 0));
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -391,7 +179,8 @@ int load_project(int argc, char** argv){
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){
-    glViewport(0, 0, width, height);
+    if (window)
+        glViewport(0, 0, width, height);
 }
 
 void calRot(const float& pitchAdd, const float& yawAdd);
@@ -430,7 +219,7 @@ void processInput(GLFWwindow* window){
 
 void calRot(const float& pitchAdd, const float& yawAdd){
 
-    const float sensitivity = 0.08;
+    const float sensitivity = 0.2;
     yaw += yawAdd * sensitivity;
     pitch += pitchAdd * sensitivity;
     if (pitch > 89.0f)
@@ -450,6 +239,8 @@ void calRot(const float& pitchAdd, const float& yawAdd){
 bool firstMouse = true;
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     
+    if (!window)
+        return;
     if (firstMouse){
         lastX = xpos;
         lastY = ypos;
@@ -484,6 +275,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+    if (!window)
+        return;
+
     float fov = camera.getFov() - (float)yoffset;
     if (fov < 1.0f)
         fov = 1.0f;
@@ -491,4 +285,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
         fov = 90.0f;
 
     camera.setFov(fov);
+
+    if (xoffset)
+        return;    
 }
