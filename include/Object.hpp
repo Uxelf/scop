@@ -37,6 +37,7 @@ public:
     const vec3  getRotation() const {return _rotation;}
     const vec3  getScale() const {return _scale;}
 
+    void setColor(const vec3& new_color) {_material.setColor(new_color);}
     void setPosition(const vec3& new_position);
     void setRotation(const vec3& new_rotation);
     void setScale(const vec3& new_scale);

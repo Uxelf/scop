@@ -88,7 +88,7 @@ int main(int argc, char** argv){
     obs.push_back(&ob1);
 
     Object ob2(argv[1], material_lit);
-    ob2.move(vec3(4, 1, 3));
+    ob2.move(vec3(4, -1, 3));
     obs.push_back(&ob2);
 
     //* Objects customization
@@ -168,15 +168,20 @@ int main(int argc, char** argv){
         light_pos[0] = cos(currentFrame) * 4;
         light_pos[2] = sin(currentFrame) * 4;
         light_ob.setPosition(light_pos);
+
+        light_color[0] = cos(currentFrame * 4.234) / 2 + 0.5;
+        light_color[1] = sin(currentFrame * 4.234) / 2 + 0.5;
         
         glBindBuffer(GL_UNIFORM_BUFFER, UBO_lights);
         glBufferSubData(GL_UNIFORM_BUFFER, 2 * VEC3_SIZE, VEC3_SIZE, light_pos.value_ptr());
+        glBufferSubData(GL_UNIFORM_BUFFER, VEC3_SIZE, VEC3_SIZE, light_color.value_ptr());
 
         glBindBuffer(GL_UNIFORM_BUFFER, UBO_matrices);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, MAT4_SIZE, projection.value_ptr());
         glBufferSubData(GL_UNIFORM_BUFFER, MAT4_SIZE, MAT4_SIZE, view.value_ptr());
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+        light_ob.setColor(light_color);
         for (unsigned int i = 0; i < obs.size(); i++)
             obs[i]->render();
 
