@@ -1,29 +1,33 @@
 #include <Object.hpp>
 
-static void loadObjFile(const std::string& path, std::vector<float>* vertices_output, std::vector<unsigned int>* indices_output);
+// static void loadObjFile(const std::string& path, std::vector<float>* vertices_output, std::vector<unsigned int>* indices_output);
+static std::vector<float> loadObjFile(const std::string& path);
 static std::vector<std::string> split(const std::string& s, char delimiter);
-static std::vector<float> generateUvs(const std::vector<vec3> vertices_vector);
-static std::vector<vec3> generateNormalsFromFaces(const std::vector<vec3>& vertices, const std::vector<unsigned int>& indices);
+static std::vector<std::string> splitFaceInfo(const std::string& s);
+/* static std::vector<float> generateUvs(const std::vector<vec3> vertices_vector);
+static std::vector<vec3> generateNormalsFromFaces(const std::vector<vec3>& vertices, const std::vector<unsigned int>& indices); */
+static std::vector<float> generateVerticesFromData(const std::vector<vec3>& vertices_list, const std::vector<vec3>& normals_list, const std::vector<vec3>& uvs_list, const std::vector<unsigned int>& faces_indices, const std::vector<unsigned int>& normals_indices, const std::vector<unsigned int>& texture_indices);
+static std::vector<float> centerVertices(const std::vector<float>& vertices);
+static vec3 generateNormal(vec3 v1, vec3 v2, vec3 v3);
 
 Object::Object(const std::string& obj_path, const Material material): _material(material)
 {
     _scale = vec3(1, 1, 1);
     _model = mat4(1);
 
-    std::vector<float> vertices_vector;
-    std::vector<unsigned int> indices_vector;
+    std::vector<float> vertices_vector = loadObjFile(obj_path);
+    // std::vector<unsigned int> indices_vector;
 
-    loadObjFile(obj_path, &vertices_vector, &indices_vector);
+    // loadObjFile(obj_path, &vertices_vector, &indices_vector);
 
     float vertices[vertices_vector.size()];
-    unsigned int indices[indices_vector.size()];
+    // unsigned int indices[indices_vector.size()];
 
     for (unsigned int i = 0; i < vertices_vector.size(); i++)
         vertices[i] = vertices_vector[i];
-    for (unsigned int i = 0; i < indices_vector.size(); i++)
-        indices[i] = indices_vector[i];
+    // for (unsigned int i = 0; i < indices_vector.size(); i++)
+    //     indices[i] = indices_vector[i];
 
-    _index_rendering = (indices_vector.size() != 0);
 
     glGenVertexArrays(1, &_VAO);
     glGenBuffers(1, &_VBO);
@@ -42,14 +46,14 @@ Object::Object(const std::string& obj_path, const Material material): _material(
     glEnableVertexAttribArray(2);
 
 
-    if (_index_rendering){
+    /* if (_index_rendering){
         glGenBuffers(1, &_EBO);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
         _elements_count = indices_vector.size();
-    } else
+    } else */
         _elements_count = vertices_vector.size();
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -69,9 +73,9 @@ void Object::render(){
     _material.setGenericShadersUniforms();
     glBindVertexArray(_VAO);
 
-    if (_index_rendering)
+    /* if (_index_rendering)
         glDrawElements(GL_TRIANGLES, _elements_count, GL_UNSIGNED_INT, 0);
-    else
+    else */
         glDrawArrays(GL_TRIANGLES, 0, _elements_count);
     
     glBindVertexArray(0);
@@ -118,97 +122,143 @@ void Object::rotate(const vec3& rotation){
     _model.translate(_position);
 }
 
-static void loadObjFile(const std::string& path, std::vector<float>* vertices_output, std::vector<unsigned int>* indices_output){
+void Object::scale(const vec3& scale_amount){
+    _model.scale(scale_amount);
+}
+
+
+
+// static void loadObjFile(const std::string& path, std::vector<float>* vertices_output, std::vector<unsigned int>* indices_output){
+static std::vector<float> loadObjFile(const std::string& path){
     if (path == ""){
         std::cout << "obj path is empty";
-        exit(1);
-    }
-    else{
-        std::cout << "OBJ file " << path << " reading in proccess" << std::endl; 
+        throw(std::runtime_error("Obj path is empty"));
     }
 
     std::ifstream file(path.c_str());
     if (!file.is_open()){
-        std::cerr << "OBJ ERROR reading file " << path << std::endl;
+        std::cerr << "\e[96mOBJ ERROR reading file " << path << std::endl;
         exit(1);
     }
 
-    std::vector<vec3> vertices;
-    std::vector<float> uvs;
-    std::vector<vec3> normals;
-    std::vector<unsigned int> indices;
+    std::vector<vec3> vertices_list;
+    std::vector<vec3> normals_list;
+    std::vector<vec3> uvs_list;
+    std::vector<unsigned int> faces_indices;
+    std::vector<unsigned int> normals_indices;
+    std::vector<unsigned int> texture_indices;
 
     std::string line;
     while(std::getline(file, line)){
         std::vector<std::string> parts = split(line, ' ');
-
+        if (parts.size() == 0)
+            continue;
         if (parts.size() == 4 && parts[0] == "v") {
             try {
                 float x = std::stof(parts[1]);
                 float y = std::stof(parts[2]);
                 float z = std::stof(parts[3]);
 
-                vertices.push_back(vec3(x, y, z));
+                vertices_list.push_back(vec3(x, y, z));
             }
             catch (const std::invalid_argument &e) {
                 std::cerr << "Error: Invalid float value in line: " << line << std::endl;
+                std::cerr << e.what();
+                return std::vector<float>(0);
             }
             catch (const std::out_of_range &e) {
                 std::cerr << "Error: Float value out of range in line: " << line << std::endl;
+                std::cerr << e.what();
+                return std::vector<float>(0);
             }
+        }
+        else if (parts[0] == "vn"){
+            try
+            {
+                float x = std::stof(parts[1]);
+                float y = std::stof(parts[2]);
+                float z = std::stof(parts[3]);
+
+                normals_list.push_back(vec3(x, y, z));
+            }
+            catch (const std::invalid_argument &e) {
+                std::cerr << "Error: Invalid float value in line: " << line << std::endl;
+                std::cerr << e.what() << std::endl;
+                return std::vector<float>(0);
+            }
+            catch (const std::out_of_range &e) {
+                std::cerr << "Error: Float value out of range in line: " << line << std::endl;
+                std::cerr << e.what() << std::endl;
+                return std::vector<float>(0);
+            }   
+        }
+        else if (parts[0] == "vt"){
+            try
+            {
+                float x = std::stof(parts[1]);
+                float y = std::stof(parts[2]);
+
+                uvs_list.push_back(vec3(x, y, 0));
+            }
+            catch (const std::invalid_argument &e) {
+                std::cerr << "Error: Invalid float value in line: " << line << std::endl;
+                std::cerr << e.what() << std::endl;
+                return std::vector<float>(0);
+            }
+            catch (const std::out_of_range &e) {
+                std::cerr << "Error: Float value out of range in line: " << line << std::endl;
+                std::cerr << e.what() << std::endl;
+                return std::vector<float>(0);
+            }   
         }
         else if (parts.size() >= 4 && parts[0] == "f"){
             try
             {
-                indices.push_back(std::stoul(parts[1]) - 1);
-                indices.push_back(std::stoul(parts[2]) - 1);
-                indices.push_back(std::stoul(parts[3]) - 1);
-                if (parts.size() == 5){
-                    indices.push_back(std::stoul(parts[1]) - 1);
-                    indices.push_back(std::stoul(parts[3]) - 1);
-                    indices.push_back(std::stoul(parts[4]) - 1);
+                std::vector<std::string> first_face_parts = splitFaceInfo(parts[1]);
+
+                for (unsigned int i = 2; i + 1 < parts.size(); i++){
+                    std::vector<std::string> face_parts_1 = splitFaceInfo(parts[i]);
+                    std::vector<std::string> face_parts_2 = splitFaceInfo(parts[i + 1]);
+
+                    faces_indices.push_back(std::stoul(first_face_parts[0]) - 1);
+                    faces_indices.push_back(std::stoul(face_parts_1[0]) - 1);
+                    faces_indices.push_back(std::stoul(face_parts_2[0]) - 1);
+
+                    if (!first_face_parts[1].empty() && !face_parts_1[1].empty() && !face_parts_2[1].empty()){
+                        texture_indices.push_back(std::stoul(first_face_parts[1]) - 1);
+                        texture_indices.push_back(std::stoul(face_parts_1[1]) - 1);
+                        texture_indices.push_back(std::stoul(face_parts_2[1]) - 1);
+                    }
+
+                    if (!first_face_parts[2].empty() && !face_parts_1[2].empty() && !face_parts_2[2].empty()){
+                        normals_indices.push_back(std::stoul(first_face_parts[2]) - 1);
+                        normals_indices.push_back(std::stoul(face_parts_1[2]) - 1);
+                        normals_indices.push_back(std::stoul(face_parts_2[2]) - 1);
+                    }
                 }
             }
             catch (const std::invalid_argument &e) {
                 std::cerr << "Error: Invalid unsigned int value in line: " << line << std::endl;
+                std::cerr << e.what() << std::endl;
+                return std::vector<float>(0);
             }
             catch (const std::out_of_range &e) {
                 std::cerr << "Error: Unsigned int value out of range in line: " << line << std::endl;
+                std::cerr << e.what() << std::endl;
+                return std::vector<float>(0);
             }            
         }
+        
     }
+
+    std::cout << "Closing file" << std::endl;
     file.close();
+    
+    std::cout << "Generating vertices from data" << std::endl;
 
-    vec3 middle;
-    for (unsigned int i = 0; i < vertices.size(); i++)
-        middle = middle + vertices[i];
-    middle[0] /= vertices.size();
-    middle[1] /= vertices.size();
-    middle[2] /= vertices.size();
-    for (unsigned int i = 0; i < vertices.size(); i++)
-        vertices[i] = vertices[i] - middle;
-
-    if (normals.size() == 0){
-        if (indices.size() != 0)
-            normals = generateNormalsFromFaces(vertices, indices);
-        /* else
-            normals; */
-    }
-
-    uvs = generateUvs(vertices);
-
-    for (unsigned int i = 0; i < vertices.size(); i++){
-        vertices_output->push_back(vertices[i][0]);
-        vertices_output->push_back(vertices[i][1]);
-        vertices_output->push_back(vertices[i][2]);
-        vertices_output->push_back(normals[i][0]);
-        vertices_output->push_back(normals[i][1]);
-        vertices_output->push_back(normals[i][2]);
-        vertices_output->push_back(uvs[i]);
-        vertices_output->push_back(uvs[i + 1]);
-    }
-    for (unsigned int i = 0; i < indices.size(); i++)
-        indices_output->push_back(indices[i]);
+    std::vector<float> vertices = generateVerticesFromData(vertices_list, normals_list, uvs_list, faces_indices, normals_indices, texture_indices);
+    std::vector<float> centered_vertices = centerVertices(vertices);
+    return centered_vertices;
 }
 
 static std::vector<std::string> split(const std::string& s, char delimiter){
@@ -217,12 +267,148 @@ static std::vector<std::string> split(const std::string& s, char delimiter){
     std::istringstream token_stream(s);
 
     while (std::getline(token_stream, token, delimiter)){
-        if (!token.empty())
             tokens.push_back(token);
     }
     return tokens;
 }
 
+static std::vector<std::string> splitFaceInfo(const std::string& s){
+    std::vector<std::string> tokens(3);
+    tokens[0] = "";
+    tokens[1] = "";
+    tokens[2] = "";
+
+    unsigned int n = 0;
+    for (unsigned int i = 0; i < s.size(); i++){
+        if (s[i] == '/'){
+            n++;
+            if (n > 2) //! Puede haber más de 3 elementos por cara??
+                break;
+            continue;
+        }
+        tokens[n] += s[i];
+    }
+    return tokens;
+}
+
+static void throwCustomIndexError(const std::string& str, unsigned int index){
+    /* char error_message[100];
+    std::sprintf(error_message, str.c_str(), index); */
+    index += 1;
+    throw std::runtime_error(str.c_str());
+}
+
+static std::vector<float> generateVerticesFromData(const std::vector<vec3>& vertices_list, const std::vector<vec3>& normals_list, const std::vector<vec3>& uvs_list, const std::vector<unsigned int>& faces_indices, const std::vector<unsigned int>& normals_indices, const std::vector<unsigned int>& texture_indices){
+
+    std::vector<vec3> vertices;
+    std::vector<vec3> normals;
+    std::vector<vec3> uvs;
+
+    std::vector<float> vertices_buffer;
+
+    try{
+        if (faces_indices.size() > 0){
+            for (unsigned int i = 0; i < faces_indices.size(); i++){
+                if (faces_indices[i] >= vertices_list.size())
+                    throwCustomIndexError("Face vertex [%d] index out of range", faces_indices[i] + 1);
+                vec3 vertex = vertices_list[faces_indices[i]];
+                vertices.push_back(vertex);
+
+                if (normals_list.size() > 0){
+                    if (normals_indices[i] >= normals_list.size())
+                        throwCustomIndexError("Normal [%d] index out of range", normals_indices[i] + 1);
+                    vec3 normal = normals_list[normals_indices[i]];
+                    normals.push_back(normal);
+                }
+                else{
+                    if (i % 3 == 2){
+                        vec3 normal = generateNormal(vertices[i - 2], vertices[i - 1], vertices[i]);
+                        normals.push_back(normal);
+                        normals.push_back(normal);
+                        normals.push_back(normal);
+                    }
+                }
+
+                if (texture_indices.size() > 0){
+                    if (texture_indices[i] >= uvs_list.size())
+                        throwCustomIndexError("Normal [%d] index out of range", texture_indices[i] + 1);
+                    vec3 uv_coord = uvs_list[texture_indices[i]];
+                    uvs.push_back(uv_coord);
+                }
+                else{
+                    //!Generar uvs
+                    uvs.push_back(vec3(0, 0, 0));
+                }
+            }
+        }
+        else{
+            for (unsigned int i = 0; i < vertices_list.size(); i++){
+                vertices.push_back(vertices_list[i]);
+                normals.push_back(vec3(1, 0, 0));
+                uvs.push_back(vec3(0, 0, 0));
+            }
+        }
+    }
+    catch (const std::exception &e) {
+        std::cerr << "Error: " << std::endl;
+        return std::vector<float>(0);
+    }
+
+    for (unsigned int i = 0; i < vertices.size(); i++){
+        vertices_buffer.push_back(vertices[i][0]);
+        vertices_buffer.push_back(vertices[i][1]);
+        vertices_buffer.push_back(vertices[i][2]);
+        vertices_buffer.push_back(normals[i][0]);
+        vertices_buffer.push_back(normals[i][1]);
+        vertices_buffer.push_back(normals[i][2]);
+        vertices_buffer.push_back(uvs[i][0]);
+        vertices_buffer.push_back(uvs[i][1]);
+    }
+
+
+    return vertices_buffer;
+}
+
+static std::vector<float> centerVertices(const std::vector<float>& vertices){
+
+    vec3 negatives_limit;
+    vec3 positives_limit;
+
+    for (unsigned int i = 0; i < vertices.size(); i += 8){
+        negatives_limit[0] = std::min(vertices[i], negatives_limit[0]);
+        negatives_limit[1] = std::min(vertices[i + 1], negatives_limit[1]);
+        negatives_limit[2] = std::min(vertices[i + 2], negatives_limit[2]);
+
+        positives_limit[0] = std::max(vertices[i], positives_limit[0]);
+        positives_limit[1] = std::max(vertices[i + 1], positives_limit[1]);
+        positives_limit[2] = std::max(vertices[i + 2], positives_limit[2]);
+    }
+
+    vec3 middle;
+    middle[0] = (negatives_limit[0] + positives_limit[0]) / 2.0f;
+    middle[1] = (negatives_limit[1] + positives_limit[1]) / 2.0f;
+    middle[2] = (negatives_limit[2] + positives_limit[2]) / 2.0f;
+
+    std::cout << "Middle: " << middle << std::endl;
+
+    std::vector<float> centered_vertices = vertices;
+    for (unsigned int i = 0; i < vertices.size(); i += 8){
+        centered_vertices[i] = vertices[i] - middle[0];
+        centered_vertices[i + 1] = vertices[i + 1] - middle[1];
+        centered_vertices[i + 2] = vertices[i + 2] - middle[2];
+    }
+    return centered_vertices;
+}
+
+
+static vec3 generateNormal(vec3 v1, vec3 v2, vec3 v3){
+    vec3 normal;
+
+    normal = cross((v2 - v1).normalized(), (v3 - v1).normalized());
+
+    return normal;
+}
+/* 
 static std::vector<float> generateUvs(const std::vector<vec3> vertices_vector){
     std::vector<float> uvs;
 
@@ -232,6 +418,12 @@ static std::vector<float> generateUvs(const std::vector<vec3> vertices_vector){
     }
 
     return uvs;
+}
+
+static std::vector<vec3> asignNormalsToVertices(const std::vector<vec3>& normals_list, const std::vector<unsigned int>& normals_indices, const unsigned int vertices_amount){
+    std::vector<vec3> normals(vertices_amount);
+
+    
 }
 
 static std::vector<vec3> generateNormalsFromFaces(const std::vector<vec3>& vertices, const std::vector<unsigned int>& indices){
@@ -251,4 +443,4 @@ static std::vector<vec3> generateNormalsFromFaces(const std::vector<vec3>& verti
         normals[i] = normals[i].normalized();
     }
     return normals;
-}
+} */

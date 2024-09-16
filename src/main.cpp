@@ -60,7 +60,7 @@ int main(int argc, char** argv){
 
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glClearColor(0.2, 0.2, 0.2, 1.0f);
+    glClearColor(0.1, 0.1, 0.1, 1.0f);
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     //glfwSetCursorPosCallback(window, mouse_callback);
@@ -73,21 +73,23 @@ int main(int argc, char** argv){
     Shader shader_unlit("./shaders/unlit/unlit.vs", "./shaders/unlit/unlit.fs");
 
 
+    //* Materials
+
+    Material material_lit(shader_lit, vec3(1, 1, 1), "");
+    Material material_unlit(shader_unlit, vec3(1, 1, 1), "");
+
+
     //* Objects load
 
-    /* std::vector<Object> obs;
-    Material material_lit(shader_lit, vec3(1, 1, 1), "");
+    std::vector<Object*> obs;
 
-    for (int i = 1; i < argc; i++){
-            Object ob(argv[i], material_lit);
-            obs.push_back(ob);
-    } */
+    Object ob1(argv[1], material_lit);
+    ob1.move(vec3(0, 0, -2));
+    obs.push_back(&ob1);
 
-   Material material_lit(shader_lit, vec3(1, 1, 1), "");
-   Material material_unlit(shader_unlit, vec3(1, 1, 1), "");
-   Object ob(argv[1], material_lit);
-
-    ob.move(vec3(0, 0, -2));
+    Object ob2(argv[1], material_lit);
+    ob2.move(vec3(4, 1, 3));
+    obs.push_back(&ob2);
 
     //* Objects customization
 
@@ -96,9 +98,13 @@ int main(int argc, char** argv){
 
     //* Lights
 
-    vec3 ambient_light_color(0.1, 0.1, 0.1);
+    vec3 ambient_light_color(0.2f, 0.2f, 0.2f);
     vec3 light_color(1, 1, 1);
-    vec3 light_pos(1.2f, 1.0f, 2.0f);
+    vec3 light_pos(1.2f, 1.0f, 4.0f);
+
+    Object light_ob("resources/Cubo.obj", material_unlit);
+    light_ob.scale(vec3(0.2, 0.2, 0.2));
+    obs.push_back(&light_ob);
 
 
     //* Uniform buffers objects
@@ -159,15 +165,20 @@ int main(int argc, char** argv){
         const mat4& projection = camera.getPerspectiveProjection();
         const mat4& view = camera.getViewMatrix();
 
+        light_pos[0] = cos(currentFrame) * 4;
+        light_pos[2] = sin(currentFrame) * 4;
+        light_ob.setPosition(light_pos);
+        
+        glBindBuffer(GL_UNIFORM_BUFFER, UBO_lights);
+        glBufferSubData(GL_UNIFORM_BUFFER, 2 * VEC3_SIZE, VEC3_SIZE, light_pos.value_ptr());
+
         glBindBuffer(GL_UNIFORM_BUFFER, UBO_matrices);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, MAT4_SIZE, projection.value_ptr());
         glBufferSubData(GL_UNIFORM_BUFFER, MAT4_SIZE, MAT4_SIZE, view.value_ptr());
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-        /* for (unsigned int i = 0; i < obs.size(); i++)
-            obs[i].render(); */
-        ob.render();
-        //ob.rotate(vec3(0, 90 * deltaTime, 0));
+        for (unsigned int i = 0; i < obs.size(); i++)
+            obs[i]->render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -189,14 +200,14 @@ void processInput(GLFWwindow* window){
         glfwSetWindowShouldClose(window, true);
 
     const float cameraSpeed = 2.5f;
-    /* vec3 fpsDirection;
+    vec3 fpsDirection;
     fpsDirection[0] = cos(DEG_TO_RAD(yaw));
     fpsDirection[2] = sin(DEG_TO_RAD(yaw));
-    fpsDirection = fpsDirection.normalized(); */
+    fpsDirection = fpsDirection.normalized();
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos = cameraPos + cameraFront * cameraSpeed * deltaTime;
+        cameraPos = cameraPos + fpsDirection * cameraSpeed * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos = cameraPos - cameraFront * cameraSpeed * deltaTime;
+        cameraPos = cameraPos - fpsDirection * cameraSpeed * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraPos = cameraPos - cross(cameraFront, cameraUp).normalized() * cameraSpeed * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)

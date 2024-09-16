@@ -117,9 +117,9 @@ const float* mat4::operator[](int index) const {
 }
 
 mat4& mat4::translate(const vec3 v){
-    _mat[3][0] += v[0];
-    _mat[3][1] += v[1];
-    _mat[3][2] += v[2];
+    _mat[3][0] = v[0];
+    _mat[3][1] = v[1];
+    _mat[3][2] = v[2];
     
     return *this;
 }

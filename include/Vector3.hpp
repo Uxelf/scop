@@ -5,7 +5,7 @@
 #include <math.h>
 #include <iostream>
 
-#define VEC3_SIZE sizeof(float) * 3
+#define VEC3_SIZE sizeof(float) * 4
 
 class vec3
 {

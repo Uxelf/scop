@@ -20,10 +20,6 @@ layout (std140) uniform Lights
 
 void main()
 {
-    vec3 ambientLightColor = vec3(0.1f);
-    vec3 lightColor = vec3(1.0f);
-    vec3 lightPos = vec3(1.0f, 1.0f, 1.0f);
-
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
 
