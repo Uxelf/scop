@@ -27,7 +27,7 @@ private:
     unsigned int    _elements_count;
   
 public:
-    Object(const std::string& obj_path, const Material material);
+    Object(const std::string& obj_path, const Material& material);
     ~Object();
 
     void render();

@@ -11,7 +11,7 @@ static std::vector<float> centerVertices(const std::vector<float>& vertices);
 static vec3 generateNormal(vec3 v1, vec3 v2, vec3 v3);
 static std::vector<vec3> generateUvs(const std::vector<vec3>& vertices);
 
-Object::Object(const std::string& obj_path, const Material material): _material(material)
+Object::Object(const std::string& obj_path, const Material& material): _material(material)
 {
     _scale = vec3(1, 1, 1);
     _model = mat4(1);
@@ -430,12 +430,12 @@ static std::vector<vec3> generateUvs(const std::vector<vec3>& vertices){
     max_limit[2] = vertices[0][2];
     for (unsigned int i = 0; i < vertices.size(); i++){
         min_limit[0] = std::min(vertices[i][0], min_limit[0]);
-        min_limit[1] = std::min(vertices[i + 1][1], min_limit[1]);
-        min_limit[2] = std::min(vertices[i + 2][2], min_limit[2]);
+        min_limit[1] = std::min(vertices[i][1], min_limit[1]);
+        min_limit[2] = std::min(vertices[i][2], min_limit[2]);
 
         max_limit[0] = std::max(vertices[i][0], max_limit[0]);
-        max_limit[1] = std::max(vertices[i + 1][1], max_limit[1]);
-        max_limit[2] = std::max(vertices[i + 2][2], max_limit[2]);
+        max_limit[1] = std::max(vertices[i][1], max_limit[1]);
+        max_limit[2] = std::max(vertices[i][2], max_limit[2]);
     }
 
     PLANE mapping_direction;
@@ -454,6 +454,8 @@ static std::vector<vec3> generateUvs(const std::vector<vec3>& vertices){
     else
         mapping_direction = YZ;
 
+    std::cout << "Min: " << min_limit << std::endl;
+    std::cout << "Max: " << max_limit << std::endl;
     std::cout << "X_len: " << x_len << std::endl;
     std::cout << "Y_len: " << y_len << std::endl;
     std::cout << "Z_len: " << z_len << std::endl;
