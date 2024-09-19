@@ -9,6 +9,7 @@ static std::vector<vec3> generateNormalsFromFaces(const std::vector<vec3>& verti
 static std::vector<float> generateVerticesFromData(const std::vector<vec3>& vertices_list, const std::vector<vec3>& normals_list, const std::vector<vec3>& uvs_list, const std::vector<unsigned int>& faces_indices, const std::vector<unsigned int>& normals_indices, const std::vector<unsigned int>& texture_indices);
 static std::vector<float> centerVertices(const std::vector<float>& vertices);
 static vec3 generateNormal(vec3 v1, vec3 v2, vec3 v3);
+static std::vector<vec3> generateUvs(const std::vector<vec3>& vertices);
 
 Object::Object(const std::string& obj_path, const Material material): _material(material)
 {
@@ -330,23 +331,22 @@ static std::vector<float> generateVerticesFromData(const std::vector<vec3>& vert
                 }
 
                 if (texture_indices.size() > 0){
-                    if (texture_indices[i] >= uvs_list.size())
-                        throwCustomIndexError("Normal [%d] index out of range", texture_indices[i] + 1);
-                    vec3 uv_coord = uvs_list[texture_indices[i]];
-                    uvs.push_back(uv_coord);
-                }
-                else{
-                    //!Generar uvs
-                    uvs.push_back(vec3(0, 0, 0));
+                    if (texture_indices.size() <= i - 1){
+                        if (texture_indices[i] >= uvs_list.size())
+                            throwCustomIndexError("Normal [%d] index out of range", texture_indices[i] + 1);
+                        vec3 uv_coord = uvs_list[texture_indices[i]];
+                        uvs.push_back(uv_coord);
+                    }
+                    else
+                        uvs.push_back(vec3(0, 0, 0));
                 }
             }
         }
         else{
-            for (unsigned int i = 0; i < vertices_list.size(); i++){
+            for (unsigned int i = 0; i < vertices_list.size(); i++)
                 vertices.push_back(vertices_list[i]);
-                normals.push_back(vec3(1, 0, 0));
-                uvs.push_back(vec3(0, 0, 0));
-            }
+            normals.push_back(vec3(1, 0, 0));
+            uvs.push_back(vec3(0, 0, 0));
         }
     }
     catch (const std::exception &e) {
@@ -354,6 +354,8 @@ static std::vector<float> generateVerticesFromData(const std::vector<vec3>& vert
         return std::vector<float>(0);
     }
 
+    if (uvs.size() == 0)
+        uvs = generateUvs(vertices);
     for (unsigned int i = 0; i < vertices.size(); i++){
         vertices_buffer.push_back(vertices[i][0]);
         vertices_buffer.push_back(vertices[i][1]);
@@ -371,23 +373,29 @@ static std::vector<float> generateVerticesFromData(const std::vector<vec3>& vert
 
 static std::vector<float> centerVertices(const std::vector<float>& vertices){
 
-    vec3 negatives_limit;
-    vec3 positives_limit;
+    vec3 min_limit;
+    vec3 max_limit;
 
+    min_limit[0] = vertices[0];
+    min_limit[1] = vertices[1];
+    min_limit[2] = vertices[2];
+    max_limit[0] = vertices[0];
+    max_limit[1] = vertices[1];
+    max_limit[2] = vertices[2];
     for (unsigned int i = 0; i < vertices.size(); i += 8){
-        negatives_limit[0] = std::min(vertices[i], negatives_limit[0]);
-        negatives_limit[1] = std::min(vertices[i + 1], negatives_limit[1]);
-        negatives_limit[2] = std::min(vertices[i + 2], negatives_limit[2]);
+        min_limit[0] = std::min(vertices[i], min_limit[0]);
+        min_limit[1] = std::min(vertices[i + 1], min_limit[1]);
+        min_limit[2] = std::min(vertices[i + 2], min_limit[2]);
 
-        positives_limit[0] = std::max(vertices[i], positives_limit[0]);
-        positives_limit[1] = std::max(vertices[i + 1], positives_limit[1]);
-        positives_limit[2] = std::max(vertices[i + 2], positives_limit[2]);
+        max_limit[0] = std::max(vertices[i], max_limit[0]);
+        max_limit[1] = std::max(vertices[i + 1], max_limit[1]);
+        max_limit[2] = std::max(vertices[i + 2], max_limit[2]);
     }
 
     vec3 middle;
-    middle[0] = (negatives_limit[0] + positives_limit[0]) / 2.0f;
-    middle[1] = (negatives_limit[1] + positives_limit[1]) / 2.0f;
-    middle[2] = (negatives_limit[2] + positives_limit[2]) / 2.0f;
+    middle[0] = (min_limit[0] + max_limit[0]) / 2.0f;
+    middle[1] = (min_limit[1] + max_limit[1]) / 2.0f;
+    middle[2] = (min_limit[2] + max_limit[2]) / 2.0f;
 
     std::cout << "Middle: " << middle << std::endl;
 
@@ -407,6 +415,77 @@ static vec3 generateNormal(vec3 v1, vec3 v2, vec3 v3){
     normal = cross((v2 - v1).normalized(), (v3 - v1).normalized());
 
     return normal;
+}
+
+static std::vector<vec3> generateUvs(const std::vector<vec3>& vertices){
+    vec3 min_limit;
+    vec3 max_limit;
+    enum PLANE { XY, XZ, YZ};
+
+    min_limit[0] = vertices[0][0];
+    min_limit[1] = vertices[0][1];
+    min_limit[2] = vertices[0][2];
+    max_limit[0] = vertices[0][0];
+    max_limit[1] = vertices[0][1];
+    max_limit[2] = vertices[0][2];
+    for (unsigned int i = 0; i < vertices.size(); i++){
+        min_limit[0] = std::min(vertices[i][0], min_limit[0]);
+        min_limit[1] = std::min(vertices[i + 1][1], min_limit[1]);
+        min_limit[2] = std::min(vertices[i + 2][2], min_limit[2]);
+
+        max_limit[0] = std::max(vertices[i][0], max_limit[0]);
+        max_limit[1] = std::max(vertices[i + 1][1], max_limit[1]);
+        max_limit[2] = std::max(vertices[i + 2][2], max_limit[2]);
+    }
+
+    PLANE mapping_direction;
+    float x_len = max_limit[0] - min_limit[0];
+    float y_len = max_limit[1] - min_limit[1];
+    float z_len = max_limit[2] - min_limit[2];
+
+    float xy_plane_weight = x_len + y_len;
+    float xz_plane_weight = x_len + z_len;
+    float yz_plane_weight = y_len + z_len;
+
+    if (xy_plane_weight >= xz_plane_weight && xy_plane_weight >= yz_plane_weight)
+        mapping_direction = XY;
+    else if (xz_plane_weight >= xy_plane_weight && xz_plane_weight > yz_plane_weight)
+        mapping_direction = XZ;
+    else
+        mapping_direction = YZ;
+
+    std::cout << "X_len: " << x_len << std::endl;
+    std::cout << "Y_len: " << y_len << std::endl;
+    std::cout << "Z_len: " << z_len << std::endl;
+    std::cout << "Mapping direction: " << mapping_direction << std::endl;
+
+    std::vector<vec3> uvs;
+    vec3 uv;
+    for (unsigned int i = 0; i < vertices.size(); i++){
+        switch (mapping_direction)
+        {
+        case XY:
+            uv[0] = (vertices[i][0] - min_limit[0])/x_len;
+            uv[1] = (vertices[i][1] - min_limit[1])/y_len;
+            break;
+        case XZ:
+            uv[0] = (vertices[i][0] - min_limit[0])/x_len;
+            uv[1] = (vertices[i][2] - min_limit[2])/z_len;
+            break;
+        case YZ:
+            uv[0] = (vertices[i][2] - min_limit[2])/z_len;
+            uv[1] = (vertices[i][1] - min_limit[1])/y_len;
+            break;
+        
+        default:
+            uv[0] = (vertices[i][2] - min_limit[2])/z_len;
+            uv[1] = (vertices[i][1] - min_limit[1])/y_len;
+            break;
+        }
+        uvs.push_back(uv);
+    }
+
+    return uvs;
 }
 /* 
 static std::vector<float> generateUvs(const std::vector<vec3> vertices_vector){

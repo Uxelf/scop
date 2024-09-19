@@ -66,6 +66,6 @@ clean:
 re: clean all
 
 run: all
-	./$(TARGET) resources/teapot.obj
+	./$(TARGET) resources/42.obj
 
 .PHONY: all clean re run

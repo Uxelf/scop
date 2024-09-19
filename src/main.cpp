@@ -75,7 +75,7 @@ int main(int argc, char** argv){
 
     //* Materials
 
-    Material material_lit(shader_lit, vec3(1, 1, 1), "");
+    Material material_lit(shader_lit, vec3(1, 1, 1), "textures/container.jpg");
     Material material_unlit(shader_unlit, vec3(1, 1, 1), "");
 
 
@@ -166,11 +166,12 @@ int main(int argc, char** argv){
         const mat4& view = camera.getViewMatrix();
 
         light_pos[0] = cos(currentFrame) * 4;
+        light_pos[1] = cos(currentFrame * 2.16);
         light_pos[2] = sin(currentFrame) * 4;
         light_ob.setPosition(light_pos);
 
-        light_color[0] = cos(currentFrame * 4.234) / 2 + 0.5;
-        light_color[1] = sin(currentFrame * 4.234) / 2 + 0.5;
+        /* light_color[0] = cos(currentFrame * 4.234) / 2 + 0.5;
+        light_color[1] = sin(currentFrame * 4.234) / 2 + 0.5;*/
         
         glBindBuffer(GL_UNIFORM_BUFFER, UBO_lights);
         glBufferSubData(GL_UNIFORM_BUFFER, 2 * VEC3_SIZE, VEC3_SIZE, light_pos.value_ptr());
