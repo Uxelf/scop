@@ -124,6 +124,9 @@ void Object::rotate(const vec3& rotation){
 }
 
 void Object::scale(const vec3& scale_amount){
+    _scale[0] *= scale_amount[0];
+    _scale[1] *= scale_amount[1];
+    _scale[2] *= scale_amount[2];
     _model.scale(scale_amount);
 }
 
