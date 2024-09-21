@@ -3,6 +3,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+static bool isPowerOfTwo(int n){
+    return (n > 0) && (n & (n - 1)) == 0;
+}
+
 Material::Material(const Shader& shader, const vec3& color, const std::string& texturePath):
     _shader(shader), _color(color) {
     if (texturePath == ""){
@@ -12,6 +16,11 @@ Material::Material(const Shader& shader, const vec3& color, const std::string& t
 
     _texture.data = stbi_load(texturePath.c_str(), &_texture.width, &_texture.height, &_texture.nrChannels, 0);
     if (_texture.data){
+        if (!isPowerOfTwo(_texture.width) || !isPowerOfTwo(_texture.height)){
+            std::cout << "Texture width and/or height is not power of 2\n";
+            stbi_image_free(_texture.data);
+            return;
+        }
         glGenTextures(1, &_texture.ID);
         glBindTexture(GL_TEXTURE_2D, _texture.ID);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
@@ -21,7 +30,8 @@ Material::Material(const Shader& shader, const vec3& color, const std::string& t
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _texture.width, _texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, _texture.data);
         glGenerateMipmap(GL_TEXTURE_2D);
-
+    
+    
         stbi_image_free(_texture.data);
         _use_texture = true;
     }

@@ -46,10 +46,6 @@ void main()
     // attenuation
     float distance = length(lightPosition - FragPos);
     float attenuation = 1.0 / (lightConstant + lightLinear * distance + lightQuadratic * (distance * distance));
-
-    // float attenuation = (5.0f - distance) / 5.0f;
-    // if (attenuation < 0)
-    //     attenuation = 0;
     
     diffuse *= attenuation * 3;
 

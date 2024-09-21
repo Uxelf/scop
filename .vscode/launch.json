@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/scop", // Path to your executable
-            "args": ["resources/teapot.obj"], // Arguments to pass to your program, if any
+            "args": ["resources/Cubo.obj"], // Arguments to pass to your program, if any
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}", // Working directory for your program
             "environment": [],

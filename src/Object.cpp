@@ -319,10 +319,15 @@ static std::vector<float> generateVerticesFromData(const std::vector<vec3>& vert
                 vertices.push_back(vertex);
 
                 if (normals_list.size() > 0){
-                    if (normals_indices[i] >= normals_list.size())
-                        throwCustomIndexError("Normal [%d] index out of range", normals_indices[i] + 1);
-                    vec3 normal = normals_list[normals_indices[i]];
-                    normals.push_back(normal);
+                    if (i >= normals_indices.size()){
+                        normals.push_back(vec3(1, 0, 0));
+                    }
+                    else{
+                        if (normals_indices[i] >= normals_list.size())
+                            throwCustomIndexError("Normal [%d] index out of range", normals_indices[i] + 1);
+                        vec3 normal = normals_list[normals_indices[i]];
+                        normals.push_back(normal);
+                    }
                 }
                 else{
                     if (i % 3 == 2){
@@ -334,7 +339,7 @@ static std::vector<float> generateVerticesFromData(const std::vector<vec3>& vert
                 }
 
                 if (texture_indices.size() > 0){
-                    if (texture_indices.size() <= i - 1){
+                    if (i < texture_indices.size()){
                         if (texture_indices[i] >= uvs_list.size())
                             throwCustomIndexError("Normal [%d] index out of range", texture_indices[i] + 1);
                         vec3 uv_coord = uvs_list[texture_indices[i]];

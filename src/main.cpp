@@ -78,7 +78,7 @@ int main(int argc, char** argv){
 
     //* Materials
 
-    Material material_lit(shader_lit, vec3(1, 0.5, 1), "textures/container.jpg");
+    Material material_lit(shader_lit, vec3(1, 0.5, 1), "textures/checkerColors.jpg");
     Material material_unlit(shader_unlit, vec3(1, 1, 1), "");
 
 
