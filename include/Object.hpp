@@ -4,12 +4,9 @@
 #include <Material.hpp>
 #include <Matrix4x4.hpp>
 #include <Vector3.hpp>
+#include <Obj_loader.hpp>
 
-#include <vector>
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
 
 class Object
 {
