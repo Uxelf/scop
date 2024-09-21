@@ -296,10 +296,17 @@ static std::vector<std::string> splitFaceInfo(const std::string& s){
 }
 
 static void throwCustomIndexError(const std::string& str, unsigned int index){
-    /* char error_message[100];
-    std::sprintf(error_message, str.c_str(), index); */
-    index += 1;
-    throw std::runtime_error(str.c_str());
+    
+    std::string indexStr = std::to_string(index);
+
+    size_t pos = str.find("%d");
+
+    std::string error_str = str;
+    if (pos != std::string::npos) {
+        error_str.replace(pos, 2, indexStr);
+    }
+
+    throw std::runtime_error(error_str.c_str());
 }
 
 static std::vector<float> generateVerticesFromData(const std::vector<vec3>& vertices_list, const std::vector<vec3>& normals_list, const std::vector<vec3>& uvs_list, const std::vector<unsigned int>& faces_indices, const std::vector<unsigned int>& normals_indices, const std::vector<unsigned int>& texture_indices){
@@ -340,13 +347,17 @@ static std::vector<float> generateVerticesFromData(const std::vector<vec3>& vert
 
                 if (texture_indices.size() > 0){
                     if (i < texture_indices.size()){
-                        if (texture_indices[i] >= uvs_list.size())
+                        if (texture_indices[i] < uvs_list.size()){
+                            vec3 uv_coord = uvs_list[texture_indices[i]];
+                            uvs.push_back(uv_coord);
+                        }
+                        else
                             throwCustomIndexError("Normal [%d] index out of range", texture_indices[i] + 1);
-                        vec3 uv_coord = uvs_list[texture_indices[i]];
-                        uvs.push_back(uv_coord);
                     }
-                    else
+                    else{
                         uvs.push_back(vec3(0, 0, 0));
+                        std::cout << "Pusheando 0\n";
+                    }
                 }
             }
         }
@@ -358,7 +369,7 @@ static std::vector<float> generateVerticesFromData(const std::vector<vec3>& vert
         }
     }
     catch (const std::exception &e) {
-        std::cerr << "Error: " << std::endl;
+        std::cerr << "Error: " << e.what() << std::endl;
         return std::vector<float>(0);
     }
 
@@ -384,6 +395,8 @@ static std::vector<float> centerVertices(const std::vector<float>& vertices){
     vec3 min_limit;
     vec3 max_limit;
 
+    if (vertices.size() < 3)
+        return (std::vector<float>(0));
     min_limit[0] = vertices[0];
     min_limit[1] = vertices[1];
     min_limit[2] = vertices[2];
