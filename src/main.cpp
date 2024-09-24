@@ -7,27 +7,16 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 std::string getShader(std::string path);
 void textureTransition(Shader& shader);
-bool is_texture_active = false;
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 800;
 
-vec3 cameraPos   = vec3(0.0f, 0.0f,  3.0f);
-vec3 cameraFront = vec3(0.0f, 0.0f, -1.0f);
-vec3 cameraUp    = vec3(0.0f, 1.0f,  0.0f);
-float pitch = 0;
-float yaw = -90;
-
-Camera camera(45, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1, 100.0f);
-
-float lastX = SCR_WIDTH / 2;
-float lastY = SCR_HEIGHT / 2;
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
-
 float textureTransitionValue = 0;
+bool is_texture_active = false;
+
+Camera camera(45, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1, 100.0f);
 
 //int load_project(int argc, char** argv){
 int main(int argc, char** argv){
@@ -38,36 +27,14 @@ int main(int argc, char** argv){
     }
 
     //* Window management
-
-    if (glfwInit() == GLFW_FALSE)
+    GLFWwindow* window = createWindow(SCR_WIDTH, SCR_HEIGHT, "OGL");
+    if (window == NULL)
         return 1;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OGL", NULL, NULL);
-
-    if (window == NULL){
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return 1;
-    }
-    glfwMakeContextCurrent(window);
-
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return 1;
-    }  
-
-    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glClearColor(0.1, 0.1, 0.1, 1.0f);
-
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    //glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    
+    glClearColor(0.1, 0.1, 0.1, 1.0f);
 
 
     //* Shaders load
@@ -93,64 +60,41 @@ int main(int argc, char** argv){
     ob1.rotate(vec3(0, -90, 0));
     ob1.scale(vec3(3, 3, 3));
 
-    //* Objects customization
-
-
-
 
     //* Lights
 
     vec3 ambient_light_color(0.05f, 0.05f, 0.05f);
-    vec3 light_pos(1.2f, 2.0f, -1.0f);
-    vec3 light_color(1, 1, 1);
-    vec3 light_diffuse(0.5f, 0.5f, 0.5f);
-    float light_constant = 1;
-    float light_linear = 0.09f;
-    float light_quadratic = 0.032f;
+
+    point_light light;
+    light.position = vec3(1.2f, 2.0f, -1.0f);
+    light.color = vec3(1, 1, 1);
+    light.diffuse = vec3(0.5f, 0.5f, 0.5f);
+    light.constant = 1;
+    light.linear = 0.09f;
+    light.quadratic = 0.032f;
 
     Object light_ob("resources/Cubo.obj", material_unlit);
-    light_ob.setPosition(light_pos);
+    light_ob.setPosition(light.position);
     light_ob.scale(vec3(0.2, 0.2, 0.2));
     obs.push_back(&light_ob);
 
 
     //* Uniform buffers objects
 
-    unsigned int UBO_matrices;
-    glGenBuffers(1, &UBO_matrices);
-    glBindBuffer(GL_UNIFORM_BUFFER, UBO_matrices);
-    glBufferData(GL_UNIFORM_BUFFER, 2 * MAT4_SIZE, NULL, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    unsigned int UBO_lights;
-    glGenBuffers(1, &UBO_lights);
-    glBindBuffer(GL_UNIFORM_BUFFER, UBO_lights);
-    glBufferData(GL_UNIFORM_BUFFER, 4 * VEC3_SIZE + sizeof(float) * 3, NULL, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    unsigned int UBO_matrices = createUBO(2 * MAT4_SIZE);
+    unsigned int UBO_lights = createUBO(4 * VEC3_SIZE + sizeof(float) * 3);
 
     GLuint matrices_binding_point = 0;
     GLuint lights_binding_point = 1;
 
-    unsigned int uniform_block_index_lit_matrices = glGetUniformBlockIndex(shader_lit.ID, "Matrices");
-    unsigned int uniform_block_index_unlit_matrices = glGetUniformBlockIndex(shader_unlit.ID, "Matrices");
-    unsigned int uniform_block_index_lit_lights = glGetUniformBlockIndex(shader_lit.ID, "Lights");
-
-    glUniformBlockBinding(shader_lit.ID, uniform_block_index_lit_matrices, matrices_binding_point);
-    glUniformBlockBinding(shader_unlit.ID, uniform_block_index_unlit_matrices, matrices_binding_point);
-    glUniformBlockBinding(shader_lit.ID, uniform_block_index_lit_lights, lights_binding_point);
-
     glBindBufferBase(GL_UNIFORM_BUFFER, matrices_binding_point, UBO_matrices);
     glBindBufferBase(GL_UNIFORM_BUFFER, lights_binding_point, UBO_lights);
-    
-    glBindBuffer(GL_UNIFORM_BUFFER, UBO_lights);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, VEC3_SIZE, ambient_light_color.value_ptr());
-    glBufferSubData(GL_UNIFORM_BUFFER, 1 * VEC3_SIZE, VEC3_SIZE, light_color.value_ptr());
-    glBufferSubData(GL_UNIFORM_BUFFER, 2 * VEC3_SIZE, VEC3_SIZE, light_pos.value_ptr());
-    glBufferSubData(GL_UNIFORM_BUFFER, 3 * VEC3_SIZE, VEC3_SIZE, light_diffuse.value_ptr());
-    glBufferSubData(GL_UNIFORM_BUFFER, 4 * VEC3_SIZE, sizeof(float), &light_constant);
-    glBufferSubData(GL_UNIFORM_BUFFER, 4 * VEC3_SIZE + sizeof(float), sizeof(float), &light_linear);
-    glBufferSubData(GL_UNIFORM_BUFFER, 4 * VEC3_SIZE + sizeof(float) * 2, sizeof(float), &light_quadratic);
 
+    uniformBlockBind(shader_lit.ID, "Matrices", matrices_binding_point);
+    uniformBlockBind(shader_unlit.ID, "Matrices", matrices_binding_point);
+    uniformBlockBind(shader_lit.ID, "Lights", lights_binding_point);
+    
+    setLightBufferValues(UBO_lights, ambient_light_color, light);
 
     //* Render settigns
 
@@ -169,10 +113,9 @@ int main(int argc, char** argv){
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;  
 
-        processInput(window);
+        processInput(window, camera, deltaTime);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        camera.lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         const mat4& projection = camera.getPerspectiveProjection();
         const mat4& view = camera.getViewMatrix();
 
@@ -193,7 +136,7 @@ int main(int argc, char** argv){
         glBufferSubData(GL_UNIFORM_BUFFER, MAT4_SIZE, MAT4_SIZE, view.value_ptr());
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-        light_ob.setColor(light_color);
+        light_ob.setColor(light.color);
 
         textureTransition(shader_lit);
         ob1.setRotation(vec3(sin(currentFrame) * 10, 20 * currentFrame, 0));
@@ -207,61 +150,6 @@ int main(int argc, char** argv){
     
     glfwTerminate();
     return 0;
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height){
-    if (window)
-        glViewport(0, 0, width, height);
-}
-
-void calRot(const float& pitchAdd, const float& yawAdd);
-void processInput(GLFWwindow* window){
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
-    const float cameraSpeed = 2.5f;
-    vec3 fpsDirection;
-    fpsDirection[0] = cos(DEG_TO_RAD(yaw));
-    fpsDirection[2] = sin(DEG_TO_RAD(yaw));
-    fpsDirection = fpsDirection.normalized();
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos = cameraPos + fpsDirection * cameraSpeed * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos = cameraPos - fpsDirection * cameraSpeed * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos = cameraPos - cross(cameraFront, cameraUp).normalized() * cameraSpeed * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos = cameraPos + cross(cameraFront, cameraUp).normalized() * cameraSpeed * deltaTime;
-
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        cameraPos = cameraPos + vec3(0, 1, 0) * cameraSpeed * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        cameraPos = cameraPos - vec3(0, 1, 0) * cameraSpeed * deltaTime;
-
-    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS){
-        if (textureTransitionValue == 0 || textureTransitionValue == 1)
-            is_texture_active = !is_texture_active;
-    }
-
-}
-
-void calRot(const float& pitchAdd, const float& yawAdd){
-
-    const float sensitivity = 0.2;
-    yaw += yawAdd * sensitivity;
-    pitch += pitchAdd * sensitivity;
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    else if (pitch < -89.0f)
-        pitch = -89.0f;
-
-        
-    vec3 direction;
-    direction[0] = cos(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
-    direction[1] = sin(DEG_TO_RAD(pitch));
-    direction[2] = sin(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
-
-    cameraFront = direction.normalized();
 }
 
 void textureTransition(Shader& shader){
@@ -281,9 +169,14 @@ void textureTransition(Shader& shader){
     }
 }
 
-bool firstMouse = true;
+
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
-    
+    static float lastX = SCR_WIDTH / 2;
+    static float lastY = SCR_HEIGHT / 2;
+    static bool firstMouse = true;
+    static float pitch = 0;
+    static float yaw = -90;
+
     if (!window)
         return;
     if (firstMouse){
@@ -297,25 +190,20 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     lastX = xpos;
     lastY = ypos;
 
-    const float sensitivity = 0.001f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    yaw += xoffset;
-    pitch += yoffset;
+    yaw += xoffset * CAMERA_SENSIBILITY;
+    pitch += yoffset * CAMERA_SENSIBILITY;
 
     if (pitch > 89.0f)
         pitch = 89.0f;
     else if (pitch < -89.0f)
         pitch = -89.0f;
 
-        
     vec3 direction;
     direction[0] = cos(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
     direction[1] = sin(DEG_TO_RAD(pitch));
     direction[2] = sin(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
 
-    cameraFront = direction.normalized();
+    camera.setFront(direction.normalized());
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

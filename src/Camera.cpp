@@ -2,8 +2,10 @@
 
 Camera::Camera(const float fov, const float aspect, const float near, const float far):
     _fov(fov), _aspect(aspect), _near(near), _far(far),
-    _position(vec3(0, 0, 0)), _target(vec3(0, 0, -1)), _up(vec3(0, 0, 1))
+    _position(vec3(0, 0, 0)), _front(vec3(0, 0, -1)), _up(vec3(0, 1, 0))
 {
+    _yaw = -90;
+    _pitch = 0;
     calculateProjectionMatrix();
     calculateViewMatrix();
 }
@@ -22,9 +24,8 @@ void Camera::calculateProjectionMatrix(){
 }
 
 void Camera::calculateViewMatrix(){
-    vec3 camera_direction = (_position - _target).normalized();
-    vec3 camera_right = cross(_up, camera_direction).normalized();
-    vec3 camera_up = cross(camera_direction, camera_right);
+    vec3 camera_right = cross(_up, _front).normalized();
+    vec3 camera_up = cross(_front, camera_right);
 
     mat4 camera_axis(1);
     camera_axis[0][0] = camera_right[0];
@@ -35,9 +36,9 @@ void Camera::calculateViewMatrix(){
     camera_axis[1][1] = camera_up[1];
     camera_axis[2][1] = camera_up[2];
 
-    camera_axis[0][2] = camera_direction[0];
-    camera_axis[1][2] = camera_direction[1];
-    camera_axis[2][2] = camera_direction[2];
+    camera_axis[0][2] = _front[0];
+    camera_axis[1][2] = _front[1];
+    camera_axis[2][2] = _front[2];
 
     mat4 camera_positon(1);
     camera_positon.translate(_position * -1);
@@ -45,9 +46,35 @@ void Camera::calculateViewMatrix(){
     _view = camera_axis * camera_positon;
 }
 
-void Camera::lookAt(const vec3& position, const vec3& target, const vec3& up){
-    _position = position;
-    _target = target;
-    _up = up;
+void Camera::lookAt(const vec3& target){
+    _front = (_position - target).normalized();
+
+    _yaw = -RAD_TO_DEG(atan2(_front[2], _front[0]));
+    _pitch = RAD_TO_DEG(asin(_front[1]));
+    if (_pitch > 89.0f)
+        _pitch = 89.0f;
+    else if (_pitch < -89.0f)
+        _pitch = -89.0f;
+        
+    calculateViewMatrix();
+}
+
+void Camera::setFront(const vec3& front){
+    _front = (front).normalized() * -1;
+
+
+    /* front[0] = cos(DEG_TO_RAD(_yaw)) * cos(DEG_TO_RAD(_pitch));
+    front[1] = sin(DEG_TO_RAD(_pitch));
+    front[2] = sin(DEG_TO_RAD(_yaw)) * cos(DEG_TO_RAD(_pitch)); */
+
+
+
+    _yaw = -RAD_TO_DEG(atan2(_front[2], _front[0]));
+    _pitch = RAD_TO_DEG(asin(_front[1]));
+    if (_pitch > 89.0f)
+        _pitch = 89.0f;
+    else if (_pitch < -89.0f)
+        _pitch = -89.0f;
+        
     calculateViewMatrix();
 }

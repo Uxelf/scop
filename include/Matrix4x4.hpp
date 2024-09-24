@@ -6,7 +6,8 @@
 #include <Vector3.hpp>
 
 #define MAT4_SIZE sizeof(float) * 16
-#define DEG_TO_RAD(degrees) ((degrees) * (M_PI / 180.0))
+constexpr float DEG_TO_RAD(float degrees){return ((degrees) * (M_PI / 180.0));}
+constexpr float RAD_TO_DEG(float rads){return ((rads) * (180.0 / M_PI));}
 
 class mat4
 {
