@@ -19,11 +19,14 @@
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 800;
 
-const float CAMERA_SPEED = 2.5f;
-const float CAMERA_SENSIBILITY = 0.001f;
+const float CAMERA_SPEED = 4.5f;
+const float CAMERA_SENSIBILITY = 0.004f;
+
+const float OBJECTS_SEPARATION = 8.0f;
 
 extern float textureTransitionValue;
 extern bool is_texture_active;
+extern bool is_light_moving;
 
 struct point_light{
     vec3 position;

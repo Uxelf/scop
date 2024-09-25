@@ -6,6 +6,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 std::string getShader(std::string path);
+void lightMovement(float limit, Object& light_object, unsigned int UBO_lights);
 void textureTransition(Shader& shader);
 
 
@@ -15,6 +16,7 @@ float lastFrame = 0.0f; // Time of last frame
 
 float textureTransitionValue = 0;
 bool is_texture_active = false;
+bool is_light_moving = true;
 
 Camera camera(45, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1, 100.0f);
 
@@ -51,14 +53,13 @@ int main(int argc, char** argv){
 
     //* Objects load
 
-    std::vector<Object*> obs;
+    std::vector<Object*> scene_objects;
 
-    Object ob1(argv[1], material_lit);
-    ob1.move(vec3(0, 0, -5));
-    obs.push_back(&ob1);
-
-    ob1.rotate(vec3(0, -90, 0));
-    ob1.scale(vec3(3, 3, 3));
+    for (int i = 0; i < argc - 1; i++){
+        scene_objects.push_back(new Object(argv[i + 1], material_lit));
+        scene_objects[i]->move(vec3(OBJECTS_SEPARATION * i, 0, 0));
+        scene_objects[i]->scale(vec3(1.2, 1.2, 1.2));
+    }
 
 
     //* Lights
@@ -66,18 +67,17 @@ int main(int argc, char** argv){
     vec3 ambient_light_color(0.05f, 0.05f, 0.05f);
 
     point_light light;
-    light.position = vec3(1.2f, 2.0f, -1.0f);
+    light.position = vec3(0.0f, 1.0f, 3.3f);
     light.color = vec3(1, 1, 1);
     light.diffuse = vec3(0.5f, 0.5f, 0.5f);
     light.constant = 1;
     light.linear = 0.09f;
     light.quadratic = 0.032f;
 
-    Object light_ob("resources/Cubo.obj", material_unlit);
+    Object light_ob = Object("resources/Cubo.obj", material_unlit);
+    scene_objects.push_back(&light_ob);
     light_ob.setPosition(light.position);
     light_ob.scale(vec3(0.2, 0.2, 0.2));
-    obs.push_back(&light_ob);
-
 
     //* Uniform buffers objects
 
@@ -106,6 +106,7 @@ int main(int argc, char** argv){
 
 
     //* Render loop
+    camera.move(vec3(0, 0, 4));
 
     while(!glfwWindowShouldClose(window)){
         
@@ -139,16 +140,21 @@ int main(int argc, char** argv){
         light_ob.setColor(light.color);
 
         textureTransition(shader_lit);
-        ob1.setRotation(vec3(sin(currentFrame) * 10, 20 * currentFrame, 0));
-        for (unsigned int i = 0; i < obs.size(); i++)
-            obs[i]->render();
+        lightMovement((argc - 2) * OBJECTS_SEPARATION, light_ob, UBO_lights);
+        for (unsigned int i = 0; i < scene_objects.size(); i++){
+            if (i != scene_objects.size() - 1)
+                scene_objects[i]->rotate(vec3(0, deltaTime * 4, 0));
+            scene_objects[i]->render();
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    
+    for (unsigned i = 0; i < scene_objects.size() - 1; i++)
+        delete scene_objects[i];
     glfwTerminate();
+
     return 0;
 }
 
@@ -169,12 +175,27 @@ void textureTransition(Shader& shader){
     }
 }
 
+void lightMovement(float limit, Object& light_object, unsigned int UBO_lights){
+    static bool moving_right = true;
+    int x_dir = (moving_right)? 1 : -1;
+    if (limit != 0 && is_light_moving){
+        light_object.move(vec3(x_dir * deltaTime * 4, 0, 0));
+        if (moving_right && light_object.getPosition()[0] >= limit)
+            moving_right = false;
+        else if (!moving_right && light_object.getPosition()[0] <= 0)
+            moving_right = true;
+
+        glBindBuffer(GL_UNIFORM_BUFFER, UBO_lights);
+        glBufferSubData(GL_UNIFORM_BUFFER, 2 * VEC3_SIZE, VEC3_SIZE, light_object.getPosition().value_ptr());
+    }
+}
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     static float lastX = SCR_WIDTH / 2;
     static float lastY = SCR_HEIGHT / 2;
     static bool firstMouse = true;
-    static float pitch = 0;
+    
+    static float pitch = 0; 
     static float yaw = -90;
 
     if (!window)
@@ -203,7 +224,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     direction[1] = sin(DEG_TO_RAD(pitch));
     direction[2] = sin(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
 
-    camera.setFront(direction.normalized());
+    /* std::cout << pitch << " | " << yaw << std::endl;
+    std::cout << direction << std::endl << std::endl; */
+    //camera.setFront(direction.normalized());
+    camera.lookAt(camera.position() + direction.normalized());
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

@@ -46,7 +46,7 @@ public:
 
     const vec3 up() {return _up;}
     const vec3 front() {return _front;}
-    const vec3 right() {return cross(_front, _up).normalized();}
+    const vec3 right() {return cross(_up, _front).normalized();}
     const vec3 position() {return _position;}
     float pitch() {return _pitch;}
     float yaw() {return _yaw;}

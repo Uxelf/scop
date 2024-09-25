@@ -48,33 +48,11 @@ void Camera::calculateViewMatrix(){
 
 void Camera::lookAt(const vec3& target){
     _front = (_position - target).normalized();
-
-    _yaw = -RAD_TO_DEG(atan2(_front[2], _front[0]));
-    _pitch = RAD_TO_DEG(asin(_front[1]));
-    if (_pitch > 89.0f)
-        _pitch = 89.0f;
-    else if (_pitch < -89.0f)
-        _pitch = -89.0f;
-        
     calculateViewMatrix();
 }
 
 void Camera::setFront(const vec3& front){
-    _front = (front).normalized() * -1;
+    _front = (front).normalized();
 
-
-    /* front[0] = cos(DEG_TO_RAD(_yaw)) * cos(DEG_TO_RAD(_pitch));
-    front[1] = sin(DEG_TO_RAD(_pitch));
-    front[2] = sin(DEG_TO_RAD(_yaw)) * cos(DEG_TO_RAD(_pitch)); */
-
-
-
-    _yaw = -RAD_TO_DEG(atan2(_front[2], _front[0]));
-    _pitch = RAD_TO_DEG(asin(_front[1]));
-    if (_pitch > 89.0f)
-        _pitch = 89.0f;
-    else if (_pitch < -89.0f)
-        _pitch = -89.0f;
-        
     calculateViewMatrix();
 }
