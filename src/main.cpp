@@ -60,7 +60,7 @@ int main(int argc, char** argv){
 
     for (int i = 0; i < argc - 1; i++){
         scene_objects.push_back(new Object(argv[i + 1], material_lit));
-        scene_objects[i]->move(vec3(0.5, 1, 6));
+        scene_objects[i]->move(vec3(OBJECTS_SEPARATION * i, 0, 0));
         scene_objects[i]->scale(vec3(1.2, 1.2, 1.2));
     }
 
