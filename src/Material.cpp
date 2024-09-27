@@ -14,6 +14,7 @@ Material::Material(const Shader& shader, const vec3& color, const std::string& t
         return;
     }
 
+    stbi_set_flip_vertically_on_load(true);
     _texture.data = stbi_load(texturePath.c_str(), &_texture.width, &_texture.height, &_texture.nrChannels, 0);
     if (_texture.data){
         if (!isPowerOfTwo(_texture.width) || !isPowerOfTwo(_texture.height)){
@@ -30,7 +31,6 @@ Material::Material(const Shader& shader, const vec3& color, const std::string& t
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _texture.width, _texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, _texture.data);
         glGenerateMipmap(GL_TEXTURE_2D);
-    
     
         stbi_image_free(_texture.data);
         _use_texture = true;

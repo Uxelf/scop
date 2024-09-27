@@ -42,5 +42,7 @@ unsigned int    createUBO(unsigned int size);
 void            uniformBlockBind(int shader_ID, const std::string& name, GLuint binding_point);
 void            setLightBufferValues(unsigned int UBO_lights, vec3& ambient_light_color, point_light& light);
 void            processInput(GLFWwindow* window, Camera& camera, float delta_time);
+void            textureTransition(Shader& shader, float delta_time);
+void            print_instructions();
 
 #endif

@@ -28,7 +28,10 @@ int main(int argc, char** argv){
         return 1;
     }
 
+    print_instructions();
+    
     //* Window management
+
     GLFWwindow* window = createWindow(SCR_WIDTH, SCR_HEIGHT, "OGL");
     if (window == NULL)
         return 1;
@@ -57,7 +60,7 @@ int main(int argc, char** argv){
 
     for (int i = 0; i < argc - 1; i++){
         scene_objects.push_back(new Object(argv[i + 1], material_lit));
-        scene_objects[i]->move(vec3(OBJECTS_SEPARATION * i, 0, 0));
+        scene_objects[i]->move(vec3(0.5, 1, 6));
         scene_objects[i]->scale(vec3(1.2, 1.2, 1.2));
     }
 
@@ -103,10 +106,18 @@ int main(int argc, char** argv){
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); //Vsync (not working in dual monitor + wsl set up)
 
-
+    Object xO = Object("resources/Cubo.obj", material_unlit);
+    xO.scale(vec3(1, 0.2, 0.2));
+    xO.move(vec3(0.75, 0, 0));
+    Object yO = Object("resources/Cubo.obj", material_unlit);
+    yO.scale(vec3(0.2, 1, 0.2));
+    yO.move(vec3(0, 0.75, 0));
+    Object zO = Object("resources/Cubo.obj", material_unlit);
+    zO.scale(vec3(0.2, 0.2, 1));
+    zO.move(vec3(0, 0, 0.75));
 
     //* Render loop
-    camera.move(vec3(0, 0, 4));
+    camera.move(vec3(0.5, 1, 1.5));
 
     while(!glfwWindowShouldClose(window)){
         
@@ -120,18 +131,6 @@ int main(int argc, char** argv){
         const mat4& projection = camera.getPerspectiveProjection();
         const mat4& view = camera.getViewMatrix();
 
-        /* light_pos[0] = cos(currentFrame) * 4;
-        light_pos[1] = cos(currentFrame * 2.16);
-        light_pos[2] = sin(currentFrame) * 4;
-        light_ob.setPosition(light_pos); */
-
-        /* light_color[0] = cos(currentFrame * 4.234) / 2 + 0.5;
-        light_color[1] = sin(currentFrame * 4.234) / 2 + 0.5;*/
-        
-        /* glBindBuffer(GL_UNIFORM_BUFFER, UBO_lights);
-        glBufferSubData(GL_UNIFORM_BUFFER, 2 * VEC3_SIZE, VEC3_SIZE, light_pos.value_ptr());
-        glBufferSubData(GL_UNIFORM_BUFFER, VEC3_SIZE, VEC3_SIZE, light_color.value_ptr()); */
-
         glBindBuffer(GL_UNIFORM_BUFFER, UBO_matrices);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, MAT4_SIZE, projection.value_ptr());
         glBufferSubData(GL_UNIFORM_BUFFER, MAT4_SIZE, MAT4_SIZE, view.value_ptr());
@@ -139,7 +138,7 @@ int main(int argc, char** argv){
 
         light_ob.setColor(light.color);
 
-        textureTransition(shader_lit);
+        textureTransition(shader_lit, deltaTime);
         lightMovement((argc - 2) * OBJECTS_SEPARATION, light_ob, UBO_lights);
         for (unsigned int i = 0; i < scene_objects.size(); i++){
             if (i != scene_objects.size() - 1)
@@ -147,6 +146,10 @@ int main(int argc, char** argv){
             scene_objects[i]->render();
         }
 
+        xO.render();
+        yO.render();
+        zO.render();
+        
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -156,23 +159,6 @@ int main(int argc, char** argv){
     glfwTerminate();
 
     return 0;
-}
-
-void textureTransition(Shader& shader){
-    if (is_texture_active && textureTransitionValue < 1){
-        textureTransitionValue += deltaTime;
-        if (textureTransitionValue > 1)
-            textureTransitionValue = 1;            
-        shader.use();
-        shader.setFloat("textureTransitionValue", textureTransitionValue);
-    }
-    else if (!is_texture_active && textureTransitionValue > 0){
-        textureTransitionValue -= deltaTime;
-        if (textureTransitionValue < 0)
-            textureTransitionValue = 0;
-        shader.use();
-        shader.setFloat("textureTransitionValue", textureTransitionValue);
-    }
 }
 
 void lightMovement(float limit, Object& light_object, unsigned int UBO_lights){
@@ -220,14 +206,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
         pitch = -89.0f;
 
     vec3 direction;
-    direction[0] = cos(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
+    direction[0] = -cos(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
     direction[1] = sin(DEG_TO_RAD(pitch));
-    direction[2] = sin(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
+    direction[2] = -sin(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
 
-    /* std::cout << pitch << " | " << yaw << std::endl;
-    std::cout << direction << std::endl << std::endl; */
-    //camera.setFront(direction.normalized());
-    camera.lookAt(camera.position() + direction.normalized());
+    camera.setFront(direction.normalized());
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

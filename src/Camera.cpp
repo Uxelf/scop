@@ -2,10 +2,8 @@
 
 Camera::Camera(const float fov, const float aspect, const float near, const float far):
     _fov(fov), _aspect(aspect), _near(near), _far(far),
-    _position(vec3(0, 0, 0)), _front(vec3(0, 0, -1)), _up(vec3(0, 1, 0))
+    _position(vec3(0, 0, 0)), _front(vec3(0, 0, 1)), _up(vec3(0, 1, 0))
 {
-    _yaw = -90;
-    _pitch = 0;
     calculateProjectionMatrix();
     calculateViewMatrix();
 }
@@ -24,8 +22,9 @@ void Camera::calculateProjectionMatrix(){
 }
 
 void Camera::calculateViewMatrix(){
-    vec3 camera_right = cross(_up, _front).normalized();
-    vec3 camera_up = cross(_front, camera_right);
+    vec3 camera_right = cross(_front, _up).normalized();
+    vec3 camera_up = cross(camera_right, _front);
+
 
     mat4 camera_axis(1);
     camera_axis[0][0] = camera_right[0];
@@ -36,9 +35,9 @@ void Camera::calculateViewMatrix(){
     camera_axis[1][1] = camera_up[1];
     camera_axis[2][1] = camera_up[2];
 
-    camera_axis[0][2] = _front[0];
-    camera_axis[1][2] = _front[1];
-    camera_axis[2][2] = _front[2];
+    camera_axis[0][2] = -_front[0];
+    camera_axis[1][2] = -_front[1];
+    camera_axis[2][2] = -_front[2];
 
     mat4 camera_positon(1);
     camera_positon.translate(_position * -1);
@@ -47,7 +46,7 @@ void Camera::calculateViewMatrix(){
 }
 
 void Camera::lookAt(const vec3& target){
-    _front = (_position - target).normalized();
+    _front = (target -_position).normalized();
     calculateViewMatrix();
 }
 

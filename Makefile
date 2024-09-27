@@ -23,12 +23,14 @@ SRCS = \
 	$(SRCS_DIR)/Camera.cpp \
 	$(SRCS_DIR)/create_window.cpp \
 	$(SRCS_DIR)/inputs_manager.cpp \
+	$(SRCS_DIR)/instructions.cpp \
 	$(SRCS_DIR)/main.cpp \
 	$(SRCS_DIR)/Material.cpp \
 	$(SRCS_DIR)/Matrix4x4.cpp \
 	$(SRCS_DIR)/Obj_loader.cpp \
 	$(SRCS_DIR)/Object.cpp \
 	$(SRCS_DIR)/Shader.cpp \
+	$(SRCS_DIR)/texture_transition.cpp \
 	$(SRCS_DIR)/uniform_buffers.cpp \
 	$(SRCS_DIR)/Vector3.cpp \
 	$(SRCS_DIR)/Vector4.cpp \
