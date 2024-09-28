@@ -12,7 +12,9 @@ class vec3
 private:
     float _data[3];
 public:
+    float &x, &y, &z;
     vec3();
+    vec3(const vec3& other);
     vec3(float x, float y, float z);
     ~vec3();
 
@@ -24,6 +26,7 @@ public:
     vec3 operator*(const float n) const;
     vec3 operator+(const vec3& other) const;
     vec3 operator-(const vec3& other) const;
+    vec3& operator=(const vec3& other);
 
     vec3 normalized() const;
 };

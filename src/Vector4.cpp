@@ -1,15 +1,19 @@
 #include <Vector4.hpp>
 
-vec4::vec4()
+vec4::vec4(): _data{0, 0, 0, 0}, x(_data[0]), y(_data[1]), z(_data[2]), w(_data[3])
 {
 }
 
-vec4::vec4(float x, float y, float z, float w)
+vec4::vec4(float x, float y, float z, float w): _data{x, y, z, w},
+x(_data[0]), y(_data[1]), z(_data[2]), w(_data[3])
 {
-    _data[0] = x;
-    _data[1] = y;
-    _data[2] = z;
-    _data[3] = w;
+}
+
+vec4::vec4(const vec4& other): _data{0, 0, 0, 0}, x(_data[0]), y(_data[1]), z(_data[2]), w(_data[3])
+{
+    _data[0] = other[0];
+    _data[1] = other[1];
+    _data[2] = other[2];
 }
 
 vec4::~vec4()
@@ -64,6 +68,6 @@ vec4 vec4::normalized(){
 }
 
 std::ostream& operator<<(std::ostream& os, const vec4& v) {
-    os << "(" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << ")";
+    os << "(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")";
     return os;
 }

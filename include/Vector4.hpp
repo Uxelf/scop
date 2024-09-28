@@ -5,12 +5,16 @@
 #include <math.h>
 #include <iostream>
 
+#define VEC4_SIZE sizeof(float) * 4
+
 class vec4
 {
 private:
     float _data[4];
 public:
+    float &x, &y, &z, &w;
     vec4();
+    vec4(const vec4& other);
     vec4(float x, float y, float z, float w);
     ~vec4();
 
@@ -22,6 +26,7 @@ public:
     vec4 operator*(const float n) const;
     vec4 operator+(const vec4& other) const;
     vec4 operator-(const vec4& other) const;
+    vec4& operator=(const vec4& other);
 
     vec4 normalized();
 };

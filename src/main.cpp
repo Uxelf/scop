@@ -82,6 +82,7 @@ int main(int argc, char** argv){
     light_ob.setPosition(light.position);
     light_ob.scale(vec3(0.2, 0.2, 0.2));
 
+
     //* Uniform buffers objects
 
     unsigned int UBO_matrices = createUBO(2 * MAT4_SIZE);
@@ -106,18 +107,8 @@ int main(int argc, char** argv){
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); //Vsync (not working in dual monitor + wsl set up)
 
-    Object xO = Object("resources/Cubo.obj", material_unlit);
-    xO.scale(vec3(1, 0.2, 0.2));
-    xO.move(vec3(0.75, 0, 0));
-    Object yO = Object("resources/Cubo.obj", material_unlit);
-    yO.scale(vec3(0.2, 1, 0.2));
-    yO.move(vec3(0, 0.75, 0));
-    Object zO = Object("resources/Cubo.obj", material_unlit);
-    zO.scale(vec3(0.2, 0.2, 1));
-    zO.move(vec3(0, 0, 0.75));
-
     //* Render loop
-    camera.move(vec3(0.5, 1, 1.5));
+    camera.move(vec3(0, 0, 4));
 
     while(!glfwWindowShouldClose(window)){
         
@@ -145,10 +136,6 @@ int main(int argc, char** argv){
                 scene_objects[i]->rotate(vec3(0, deltaTime * 4, 0));
             scene_objects[i]->render();
         }
-
-        xO.render();
-        yO.render();
-        zO.render();
         
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -182,7 +169,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     static bool firstMouse = true;
     
     static float pitch = 0; 
-    static float yaw = -90;
+    static float yaw = 90;
 
     if (!window)
         return;
@@ -217,15 +204,13 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     if (!window)
         return;
-
+    (void)xoffset;
+    
     float fov = camera.getFov() - (float)yoffset;
     if (fov < 1.0f)
         fov = 1.0f;
-    if (fov > 90.0f)
-        fov = 90.0f;
+    if (fov > 120.0f)
+        fov = 120.0f;
 
     camera.setFov(fov);
-
-    if (xoffset)
-        return;    
 }

@@ -177,14 +177,14 @@ static std::vector<float> generateVerticesFromData(const std::vector<vec3>& vert
         uvs = generateUvs(vertices);
 
     for (unsigned int i = 0; i < vertices.size(); i++){
-        vertices_buffer.push_back(vertices[i][0]);
-        vertices_buffer.push_back(vertices[i][1]);
-        vertices_buffer.push_back(vertices[i][2]);
-        vertices_buffer.push_back(normals[i][0]);
-        vertices_buffer.push_back(normals[i][1]);
-        vertices_buffer.push_back(normals[i][2]);
-        vertices_buffer.push_back(uvs[i][0]);
-        vertices_buffer.push_back(uvs[i][1]);
+        vertices_buffer.push_back(vertices[i].x);
+        vertices_buffer.push_back(vertices[i].y);
+        vertices_buffer.push_back(vertices[i].z);
+        vertices_buffer.push_back(normals[i].x);
+        vertices_buffer.push_back(normals[i].y);
+        vertices_buffer.push_back(normals[i].z);
+        vertices_buffer.push_back(uvs[i].x);
+        vertices_buffer.push_back(uvs[i].y);
     }
 
 
@@ -259,30 +259,30 @@ static std::vector<float> centerVertices(const std::vector<float>& vertices){
 
     if (vertices.size() < 3)
         return (std::vector<float>(0));
-    min_limit[0] = max_limit[0] = vertices[0];
-    min_limit[1] = max_limit[1] = vertices[1];
-    min_limit[2] = max_limit[2] = vertices[2];
+    min_limit.x = max_limit.x = vertices[0];
+    min_limit.y = max_limit.y = vertices[1];
+    min_limit.z = max_limit.z = vertices[2];
 
     for (unsigned int i = 0; i < vertices.size(); i += 8){
-        min_limit[0] = std::min(vertices[i], min_limit[0]);
-        min_limit[1] = std::min(vertices[i + 1], min_limit[1]);
-        min_limit[2] = std::min(vertices[i + 2], min_limit[2]);
+        min_limit.x = std::min(vertices[i], min_limit.x);
+        min_limit.y = std::min(vertices[i + 1], min_limit.y);
+        min_limit.z = std::min(vertices[i + 2], min_limit.z);
 
-        max_limit[0] = std::max(vertices[i], max_limit[0]);
-        max_limit[1] = std::max(vertices[i + 1], max_limit[1]);
-        max_limit[2] = std::max(vertices[i + 2], max_limit[2]);
+        max_limit.x = std::max(vertices[i], max_limit.x);
+        max_limit.y = std::max(vertices[i + 1], max_limit.y);
+        max_limit.z = std::max(vertices[i + 2], max_limit.z);
     }
 
     vec3 middle;
-    middle[0] = (min_limit[0] + max_limit[0]) / 2.0f;
-    middle[1] = (min_limit[1] + max_limit[1]) / 2.0f;
-    middle[2] = (min_limit[2] + max_limit[2]) / 2.0f;
+    middle.x = (min_limit.x + max_limit.x) / 2.0f;
+    middle.y = (min_limit.y + max_limit.y) / 2.0f;
+    middle.z = (min_limit.z + max_limit.z) / 2.0f;
 
     std::vector<float> centered_vertices = vertices;
     for (unsigned int i = 0; i < vertices.size(); i += 8){
-        centered_vertices[i] = vertices[i] - middle[0];
-        centered_vertices[i + 1] = vertices[i + 1] - middle[1];
-        centered_vertices[i + 2] = vertices[i + 2] - middle[2];
+        centered_vertices[i] = vertices[i] - middle.x;
+        centered_vertices[i + 1] = vertices[i + 1] - middle.y;
+        centered_vertices[i + 2] = vertices[i + 2] - middle.z;
     }
     return centered_vertices;
 }
@@ -291,23 +291,23 @@ static std::vector<vec3> generateUvs(const std::vector<vec3>& vertices){
     vec3 min_limit, max_limit;
     enum PLANE { XY, XZ, YZ};
 
-    min_limit[0] = max_limit[0] = vertices[0][0];
-    min_limit[1] = max_limit[1] = vertices[0][1];
-    min_limit[2] = max_limit[2] = vertices[0][2];
+    min_limit.x = max_limit.x = vertices[0].x;
+    min_limit.y = max_limit.y = vertices[0].y;
+    min_limit.z = max_limit.z = vertices[0].z;
     for (unsigned int i = 0; i < vertices.size(); i++){
-        min_limit[0] = std::min(vertices[i][0], min_limit[0]);
-        min_limit[1] = std::min(vertices[i][1], min_limit[1]);
-        min_limit[2] = std::min(vertices[i][2], min_limit[2]);
+        min_limit.x = std::min(vertices[i].x, min_limit.x);
+        min_limit.y = std::min(vertices[i].y, min_limit.y);
+        min_limit.z = std::min(vertices[i].z, min_limit.z);
 
-        max_limit[0] = std::max(vertices[i][0], max_limit[0]);
-        max_limit[1] = std::max(vertices[i][1], max_limit[1]);
-        max_limit[2] = std::max(vertices[i][2], max_limit[2]);
+        max_limit.x = std::max(vertices[i].x, max_limit.x);
+        max_limit.y = std::max(vertices[i].y, max_limit.y);
+        max_limit.z = std::max(vertices[i].z, max_limit.z);
     }
 
     PLANE mapping_direction;
-    float x_len = max_limit[0] - min_limit[0];
-    float y_len = max_limit[1] - min_limit[1];
-    float z_len = max_limit[2] - min_limit[2];
+    float x_len = max_limit.x - min_limit.x;
+    float y_len = max_limit.y - min_limit.y;
+    float z_len = max_limit.z - min_limit.z;
 
     float xy_plane_weight = x_len + y_len;
     float xz_plane_weight = x_len + z_len;
@@ -326,16 +326,16 @@ static std::vector<vec3> generateUvs(const std::vector<vec3>& vertices){
         switch (mapping_direction)
         {
         case XY:
-            uv[0] = (vertices[i][0] - min_limit[0])/x_len;
-            uv[1] = (vertices[i][1] - min_limit[1])/y_len;
+            uv.x = (vertices[i].x - min_limit.x)/x_len;
+            uv.y = (vertices[i].y - min_limit.y)/y_len;
             break;
         case XZ:
-            uv[0] = (vertices[i][0] - min_limit[0])/x_len;
-            uv[1] = (vertices[i][2] - min_limit[2])/z_len;
+            uv.x = (vertices[i].x - min_limit.x)/x_len;
+            uv.y = (vertices[i].z - min_limit.z)/z_len;
             break;
         case YZ:
-            uv[0] = (vertices[i][2] - min_limit[2])/z_len;
-            uv[1] = (vertices[i][1] - min_limit[1])/y_len;
+            uv.x = (vertices[i].z - min_limit.z)/z_len;
+            uv.y = (vertices[i].y - min_limit.y)/y_len;
             break;
         
         default:

@@ -83,17 +83,17 @@ void Object::setRotation(const vec3& new_rotation){
 
     _model = mat4(1);
     _model.scale(_scale);
-    if (_rotation[1])
-        _model.rotate(_rotation[1], vec3(0, 1, 0));
-    if (_rotation[0])
-        _model.rotate(_rotation[0], vec3(1, 0, 0));
-    if (_rotation[2])
-        _model.rotate(_rotation[2], vec3(0, 0, 1));
+    if (_rotation.y)
+        _model.rotate(_rotation.y, vec3(0, 1, 0));
+    if (_rotation.x)
+        _model.rotate(_rotation.x, vec3(1, 0, 0));
+    if (_rotation.z)
+        _model.rotate(_rotation.z, vec3(0, 0, 1));
     _model.translate(_position);
 }
 
 void Object::setScale(const vec3& new_scale){
-    _model.scale(1.0f / _scale[0], 1.0f / _scale[1], 1.0f / _scale[2]);
+    _model.scale(1.0f / _scale.x, 1.0f / _scale.y, 1.0f / _scale.z);
     _scale = new_scale;
     _model.scale(_scale);
 }
@@ -105,18 +105,18 @@ void Object::move(const vec3& movement){
 
 void Object::rotate(const vec3& rotation){
     _model.translate(0, 0, 0);
-    if (rotation[1])
-        _model.rotate(rotation[1], vec3(0, 1, 0));
-    if (rotation[0])
-        _model.rotate(rotation[0], vec3(1, 0, 0));
-    if (rotation[2])
-        _model.rotate(rotation[2], vec3(0, 0, 1));
+    if (rotation.y)
+        _model.rotate(rotation.y, vec3(0, 1, 0));
+    if (rotation.x)
+        _model.rotate(rotation.x, vec3(1, 0, 0));
+    if (rotation.z)
+        _model.rotate(rotation.z, vec3(0, 0, 1));
     _model.translate(_position);
 }
 
 void Object::scale(const vec3& scale_amount){
-    _scale[0] *= scale_amount[0];
-    _scale[1] *= scale_amount[1];
-    _scale[2] *= scale_amount[2];
+    _scale.x *= scale_amount.x;
+    _scale.y *= scale_amount.y;
+    _scale.z *= scale_amount.z;
     _model.scale(scale_amount);
 }

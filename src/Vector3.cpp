@@ -1,17 +1,18 @@
 #include <Vector3.hpp>
 
-vec3::vec3()
+vec3::vec3(): _data{0, 0, 0}, x(_data[0]), y(_data[1]), z(_data[2])
 {
-    _data[0] = 0;
-    _data[1] = 0;
-    _data[2] = 0;
 }
 
-vec3::vec3(float x, float y, float z)
+vec3::vec3(float x, float y, float z): _data{x, y, z}, x(_data[0]), y(_data[1]), z(_data[2])
 {
-    _data[0] = x;
-    _data[1] = y;
-    _data[2] = z;
+}
+
+vec3::vec3(const vec3& other): _data{0, 0, 0}, x(_data[0]), y(_data[1]), z(_data[2])
+{
+    _data[0] = other[0];
+    _data[1] = other[1];
+    _data[2] = other[2];
 }
 
 vec3::~vec3()
@@ -56,6 +57,15 @@ vec3 vec3::operator-(const vec3& other) const{
     ));
 }
 
+vec3& vec3::operator=(const vec3& other) {
+    if (this != &other) {  // Self-assignment check
+        _data[0] = other[0];
+        _data[1] = other[1];
+        _data[2] = other[2];
+    }
+    return *this;
+}
+
 vec3 vec3::normalized() const{
     float length = sqrt(pow(_data[0], 2) + pow(_data[1], 2) + pow(_data[2], 2));
     return (vec3(_data[0] / length, _data[1] / length, _data[2] / length));
@@ -64,14 +74,14 @@ vec3 vec3::normalized() const{
 vec3 cross(const vec3& a, const vec3& b){
     vec3 result;
 
-    result[0] = a[1] * b[2] - b[1] * a[2];
-    result[1] = a[2] * b[0] - b[2] * a[0];
-    result[2] = a[0] * b[1] - b[0] * a[1];
+    result.x = a.y * b.z - b.y * a.z;
+    result.y = a.z * b.x - b.z * a.x;
+    result.z = a.x * b.y - b.x * a.y;
 
     return result;
 }
 
 std::ostream& operator<<(std::ostream& os, const vec3& v) {
-    os << "(" << v[0] << ", " << v[1] << ", " << v[2] << ")";
+    os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
     return os;
 }

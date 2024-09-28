@@ -27,17 +27,17 @@ void Camera::calculateViewMatrix(){
 
 
     mat4 camera_axis(1);
-    camera_axis[0][0] = camera_right[0];
-    camera_axis[1][0] = camera_right[1];
-    camera_axis[2][0] = camera_right[2];
+    camera_axis[0][0] = camera_right.x;
+    camera_axis[1][0] = camera_right.y;
+    camera_axis[2][0] = camera_right.z;
 
-    camera_axis[0][1] = camera_up[0];
-    camera_axis[1][1] = camera_up[1];
-    camera_axis[2][1] = camera_up[2];
+    camera_axis[0][1] = camera_up.x;
+    camera_axis[1][1] = camera_up.y;
+    camera_axis[2][1] = camera_up.z;
 
-    camera_axis[0][2] = -_front[0];
-    camera_axis[1][2] = -_front[1];
-    camera_axis[2][2] = -_front[2];
+    camera_axis[0][2] = -_front.x;
+    camera_axis[1][2] = -_front.y;
+    camera_axis[2][2] = -_front.z;
 
     mat4 camera_positon(1);
     camera_positon.translate(_position * -1);

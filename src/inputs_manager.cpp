@@ -7,7 +7,7 @@ void processInput(GLFWwindow* window, Camera& camera, float delta_time){
         glfwSetWindowShouldClose(window, true);
 
     vec3 fp_direction = camera.front();
-    fp_direction[1] = 0;
+    fp_direction.y = 0;
     fp_direction = fp_direction.normalized();
     vec3 movement;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
