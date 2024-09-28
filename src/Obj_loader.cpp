@@ -19,7 +19,7 @@ std::vector<float> loadObjFile(const std::string& path){
 
     std::ifstream file(path.c_str());
     if (!file.is_open()){
-        std::cerr << "\e[96mOBJ ERROR opening file " << path << std::endl;
+        std::cerr << "OBJ ERROR opening file " << path << std::endl;
         return std::vector<float>(0);
     }
 
@@ -40,26 +40,27 @@ std::vector<float> loadObjFile(const std::string& path){
 
             if (parts.size() == 0)
                 continue;
+
             if (parts[0] == "v" && parts.size() == 4) {
                 x = stof(parts[1]);
                 y = stof(parts[2]);
                 z = stof(parts[3]);
-
                 vertices_list.push_back(vec3(x, y, z));
             }
+
             else if (parts[0] == "vn"){
                 x = stof(parts[1]);
                 y = stof(parts[2]);
                 z = stof(parts[3]);
-
-                normals_list.push_back(vec3(x, y, z)); 
+                normals_list.push_back(vec3(x, y, z));
             }
+
             else if (parts[0] == "vt"){
                 x = stof(parts[1]);
                 y = stof(parts[2]);
-
                 uvs_list.push_back(vec3(x, y, 0));
             }
+
             else if (parts[0] == "f" && parts.size() >= 4){
                
                 std::vector<std::string> first_face_parts = splitFaceInfo(parts[1]);
@@ -133,13 +134,13 @@ static std::vector<std::string> splitFaceInfo(const std::string& s){
 
 static void throwCustomIndexError(const std::string& str, unsigned int index){
     
-    std::string indexStr = std::to_string(index);
+    std::string index_str = std::to_string(index);
 
     size_t pos = str.find("%d");
 
     std::string error_str = str;
     if (pos != std::string::npos) {
-        error_str.replace(pos, 2, indexStr);
+        error_str.replace(pos, 2, index_str);
     }
 
     throw std::runtime_error(error_str.c_str());

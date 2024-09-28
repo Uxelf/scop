@@ -15,7 +15,7 @@ Material::Material(const Shader& shader, const vec3& color, const std::string& t
     }
 
     stbi_set_flip_vertically_on_load(true);
-    _texture.data = stbi_load(texturePath.c_str(), &_texture.width, &_texture.height, &_texture.nrChannels, 0);
+    _texture.data = stbi_load(texturePath.c_str(), &_texture.width, &_texture.height, &_texture.nr_channels, 0);
     if (_texture.data){
         if (!isPowerOfTwo(_texture.width) || !isPowerOfTwo(_texture.height)){
             std::cout << "Texture width and/or height is not power of 2\n";

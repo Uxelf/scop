@@ -1,6 +1,15 @@
 #include <scop.hpp>
 
+float textureTransitionValue = 0;
+bool is_texture_active = false;
+
+void textureStartTransition(){
+    if (textureTransitionValue == 0 || textureTransitionValue == 1)
+            is_texture_active = !is_texture_active;
+}
+
 void textureTransition(Shader& shader, float delta_time){
+
     if (is_texture_active && textureTransitionValue < 1){
         textureTransitionValue += delta_time;
         if (textureTransitionValue > 1)

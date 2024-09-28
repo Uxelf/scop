@@ -1,26 +1,13 @@
+#include <scop.hpp>
 
-#include "../include/scop.hpp"
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow* window);
-std::string getShader(std::string path);
-void lightMovement(float limit, Object& light_object, unsigned int UBO_lights);
-void textureTransition(Shader& shader);
-
-
-
-float deltaTime = 0.0f;	// Time between current frame and last frame
-float lastFrame = 0.0f; // Time of last frame
-
-float textureTransitionValue = 0;
-bool is_texture_active = false;
+static void lightMovement(float limit, Object& light_object, unsigned int UBO_lights);
 bool is_light_moving = true;
+
+float delta_time = 0.0f;
+float last_frame = 0.0f;
 
 Camera camera(45, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1, 100.0f);
 
-//int load_project(int argc, char** argv){
 int main(int argc, char** argv){
 
     if (argc < 2){
@@ -105,18 +92,18 @@ int main(int argc, char** argv){
     glEnable(GL_DEPTH_TEST);
     // glPolygonMode(GL_FRONT_AND_BACK, [MODE]); // GL_LINE = Wireframe ; GL_FILL = Fill
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); //Vsync (not working in dual monitor + wsl set up)
+    glfwSwapInterval(1); //Vsync (not working in wsl)
 
     //* Render loop
     camera.move(vec3(0, 0, 4));
 
     while(!glfwWindowShouldClose(window)){
         
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;  
+        float current_frame = glfwGetTime();
+        delta_time = current_frame - last_frame;
+        last_frame = current_frame;  
 
-        processInput(window, camera, deltaTime);
+        processInput(window, camera, delta_time);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         const mat4& projection = camera.getPerspectiveProjection();
@@ -129,11 +116,11 @@ int main(int argc, char** argv){
 
         light_ob.setColor(light.color);
 
-        textureTransition(shader_lit, deltaTime);
+        textureTransition(shader_lit, delta_time);
         lightMovement((argc - 2) * OBJECTS_SEPARATION, light_ob, UBO_lights);
         for (unsigned int i = 0; i < scene_objects.size(); i++){
             if (i != scene_objects.size() - 1)
-                scene_objects[i]->rotate(vec3(0, deltaTime * 4, 0));
+                scene_objects[i]->rotate(vec3(0, delta_time * 4, 0));
             scene_objects[i]->render();
         }
         
@@ -148,11 +135,11 @@ int main(int argc, char** argv){
     return 0;
 }
 
-void lightMovement(float limit, Object& light_object, unsigned int UBO_lights){
+static void lightMovement(float limit, Object& light_object, unsigned int UBO_lights){
     static bool moving_right = true;
     int x_dir = (moving_right)? 1 : -1;
     if (limit != 0 && is_light_moving){
-        light_object.move(vec3(x_dir * deltaTime * 4, 0, 0));
+        light_object.move(vec3(x_dir * delta_time * 4, 0, 0));
         if (moving_right && light_object.getPosition()[0] >= limit)
             moving_right = false;
         else if (!moving_right && light_object.getPosition()[0] <= 0)
@@ -161,56 +148,4 @@ void lightMovement(float limit, Object& light_object, unsigned int UBO_lights){
         glBindBuffer(GL_UNIFORM_BUFFER, UBO_lights);
         glBufferSubData(GL_UNIFORM_BUFFER, 2 * VEC3_SIZE, VEC3_SIZE, light_object.getPosition().value_ptr());
     }
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos){
-    static float lastX = SCR_WIDTH / 2;
-    static float lastY = SCR_HEIGHT / 2;
-    static bool firstMouse = true;
-    
-    static float pitch = 0; 
-    static float yaw = 90;
-
-    if (!window)
-        return;
-    if (firstMouse){
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-    
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
-    lastX = xpos;
-    lastY = ypos;
-
-    yaw += xoffset * CAMERA_SENSIBILITY;
-    pitch += yoffset * CAMERA_SENSIBILITY;
-
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    else if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    vec3 direction;
-    direction[0] = -cos(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
-    direction[1] = sin(DEG_TO_RAD(pitch));
-    direction[2] = -sin(DEG_TO_RAD(yaw)) * cos(DEG_TO_RAD(pitch));
-
-    camera.setFront(direction.normalized());
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    if (!window)
-        return;
-    (void)xoffset;
-    
-    float fov = camera.getFov() - (float)yoffset;
-    if (fov < 1.0f)
-        fov = 1.0f;
-    if (fov > 120.0f)
-        fov = 120.0f;
-
-    camera.setFov(fov);
 }

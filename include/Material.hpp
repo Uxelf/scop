@@ -10,7 +10,7 @@ struct Texture{
     unsigned int ID;
     int width;
     int height;
-    int nrChannels;
+    int nr_channels;
     unsigned char *data;
 };
 
