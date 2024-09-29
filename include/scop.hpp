@@ -38,6 +38,7 @@ struct point_light{
 };
 
 GLFWwindow*     createWindow(int width, int height, const std::string& name);
+void            loadScene(GLFWwindow* window, int argc, char** argv);
 unsigned int    createUBO(unsigned int size);
 void            uniformBlockBind(int shader_ID, const std::string& name, GLuint binding_point);
 void            setLightBufferValues(unsigned int UBO_lights, vec3& ambient_light_color, point_light& light);

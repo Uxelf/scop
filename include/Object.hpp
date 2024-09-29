@@ -19,8 +19,6 @@ private:
 
     unsigned int    _VAO;
     unsigned int    _VBO;
-    /* unsigned int    _EBO;
-    bool            _index_rendering; */
     unsigned int    _elements_count;
   
 public:

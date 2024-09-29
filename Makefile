@@ -29,6 +29,7 @@ SRCS = \
 	$(SRCS_DIR)/Matrix4x4.cpp \
 	$(SRCS_DIR)/Obj_loader.cpp \
 	$(SRCS_DIR)/Object.cpp \
+	$(SRCS_DIR)/scene.cpp \
 	$(SRCS_DIR)/Shader.cpp \
 	$(SRCS_DIR)/texture_transition.cpp \
 	$(SRCS_DIR)/uniform_buffers.cpp \

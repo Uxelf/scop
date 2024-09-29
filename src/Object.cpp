@@ -8,18 +8,10 @@ Object::Object(const std::string& obj_path, const Material& material): _material
     _model = mat4(1);
 
     std::vector<float> vertices_vector = loadObjFile(obj_path);
-    // std::vector<unsigned int> indices_vector;
-
-    // loadObjFile(obj_path, &vertices_vector, &indices_vector);
-
     float vertices[vertices_vector.size()];
-    // unsigned int indices[indices_vector.size()];
 
     for (unsigned int i = 0; i < vertices_vector.size(); i++)
         vertices[i] = vertices_vector[i];
-    // for (unsigned int i = 0; i < indices_vector.size(); i++)
-    //     indices[i] = indices_vector[i];
-
 
     glGenVertexArrays(1, &_VAO);
     glGenBuffers(1, &_VBO);
@@ -37,16 +29,7 @@ Object::Object(const std::string& obj_path, const Material& material): _material
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-
-    /* if (_index_rendering){
-        glGenBuffers(1, &_EBO);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-        _elements_count = indices_vector.size();
-    } else */
-        _elements_count = vertices_vector.size();
+    _elements_count = vertices_vector.size();
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -56,6 +39,8 @@ Object::Object(const std::string& obj_path, const Material& material): _material
 
 Object::~Object()
 {
+    glDeleteVertexArrays(1, &_VAO);
+    glDeleteBuffers(1, &_VBO);
 }
 
 void Object::render(){
@@ -65,10 +50,7 @@ void Object::render(){
     _material.setGenericShadersUniforms();
     glBindVertexArray(_VAO);
 
-    /* if (_index_rendering)
-        glDrawElements(GL_TRIANGLES, _elements_count, GL_UNSIGNED_INT, 0);
-    else */
-        glDrawArrays(GL_TRIANGLES, 0, _elements_count);
+    glDrawArrays(GL_TRIANGLES, 0, _elements_count);
     
     glBindVertexArray(0);
 }

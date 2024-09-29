@@ -13,6 +13,18 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath){
     const char* fShaderCode = fragmentCode.c_str();
 
     ID = createProgramID(vShaderCode, fShaderCode);
+    is_source = true;
+}
+
+Shader::Shader(const Shader& other){
+    ID = other.ID;
+    is_source = false;
+}
+
+Shader::~Shader(){
+    if (is_source){
+        glDeleteShader(ID);
+    }
 }
 
 std::string getFileContent(const char* path){
@@ -85,10 +97,6 @@ unsigned int createProgramID(const char* vShaderCode, const char* fShaderCode){
     glDeleteShader(fragment);
 
     return ID;
-}
-
-Shader::Shader(const Shader& other){
-    ID = other.ID;
 }
 
 void Shader::use(){
