@@ -45,6 +45,7 @@ Material::Material(const Material& other):
 }
 
 Material::~Material(){
+    glDeleteTextures(1, &_texture.ID);
 }
 
 void Material::setGenericShadersUniforms(){

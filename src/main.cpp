@@ -16,6 +16,7 @@ int main(int argc, char** argv){
     
     loadScene(window, argc, argv);
 
+    glfwDestroyWindow(window);
     glfwTerminate();
 
     return 0;

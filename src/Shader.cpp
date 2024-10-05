@@ -23,7 +23,7 @@ Shader::Shader(const Shader& other){
 
 Shader::~Shader(){
     if (is_source){
-        glDeleteShader(ID);
+        glDeleteProgram(ID);
     }
 }
 

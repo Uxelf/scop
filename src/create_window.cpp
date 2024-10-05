@@ -27,6 +27,8 @@ GLFWwindow* createWindow(int width, int height, const std::string& name){
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
+        glfwDestroyWindow(window);
+        glfwTerminate();
         return NULL;
     }  
 

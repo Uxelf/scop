@@ -7,18 +7,14 @@ Object::Object(const std::string& obj_path, const Material& material): _material
     _scale = vec3(1, 1, 1);
     _model = mat4(1);
 
-    std::vector<float> vertices_vector = loadObjFile(obj_path);
-    float vertices[vertices_vector.size()];
-
-    for (unsigned int i = 0; i < vertices_vector.size(); i++)
-        vertices[i] = vertices_vector[i];
+    std::vector<float> vertices = loadObjFile(obj_path);
 
     glGenVertexArrays(1, &_VAO);
     glGenBuffers(1, &_VBO);
 
     glBindVertexArray(_VAO);
     glBindBuffer(GL_ARRAY_BUFFER, _VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -29,7 +25,7 @@ Object::Object(const std::string& obj_path, const Material& material): _material
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    _elements_count = vertices_vector.size();
+    _elements_count = vertices.size();
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);

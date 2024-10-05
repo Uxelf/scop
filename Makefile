@@ -2,10 +2,10 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -Iincludes -std=c++20 -MMD -MP -Wall -Werror -Wextra -g -O0
+CXXFLAGS = -Iincludes -std=c++20 -MMD -MP -Wall -Werror -Wextra
 
 # Linker flags
-LDFLAGS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -g -O0
+LDFLAGS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi
 
 # Directories
 SRCS_DIR = src

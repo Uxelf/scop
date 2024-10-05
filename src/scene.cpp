@@ -75,7 +75,6 @@ void loadScene(GLFWwindow* window, int argc, char** argv){
 
     glEnable(GL_DEPTH_TEST);
     // glPolygonMode(GL_FRONT_AND_BACK, [MODE]); // GL_LINE = Wireframe ; GL_FILL = Fill
-    glfwMakeContextCurrent(window);
     glfwSwapInterval(1); //Vsync (not working in wsl)
 
     //* Render loop
