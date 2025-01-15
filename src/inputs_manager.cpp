@@ -1,6 +1,7 @@
 #include <scop.hpp>
 
 extern Camera camera;
+bool is_light_key_released = true;
 
 void processInput(GLFWwindow* window, Camera& camera, float delta_time){
 
@@ -30,9 +31,12 @@ void processInput(GLFWwindow* window, Camera& camera, float delta_time){
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS){
         textureStartTransition();
     }
-    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS){
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS && is_light_key_released){
         is_light_moving = !is_light_moving;
+        is_light_key_released = false;
     }
+    else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE)
+        is_light_key_released = true;
 }
 
 
