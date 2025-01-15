@@ -292,6 +292,10 @@ static std::vector<vec3> generateUvs(const std::vector<vec3>& vertices){
     vec3 min_limit, max_limit;
     enum PLANE { XY, XZ, YZ};
 
+    if (!vertices.size()){
+        std::vector<vec3> empty;
+        return empty;
+    }
     min_limit.x = max_limit.x = vertices[0].x;
     min_limit.y = max_limit.y = vertices[0].y;
     min_limit.z = max_limit.z = vertices[0].z;
