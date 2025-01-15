@@ -15,12 +15,12 @@ Example:
 
 ## Controls
 Similar to any other first person camera
-**WASD** - Move arround
-**Mouse** - Rotate camera
-**Space** - Go up
-**Shift** - Go down
-**1** - Toggle texture
-**2** - Toggle light movement
+**WASD** - Move arround  
+**Mouse** - Rotate camera  
+**Space** - Go up  
+**Shift** - Go down  
+**1** - Toggle texture  
+**2** - Toggle light movement  
 
 ## Obj files
 Currently, the following data is supported:
